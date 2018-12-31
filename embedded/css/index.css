@@ -1,8 +1,6 @@
 @import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600");
 .custom-social-proof {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
   z-index: 9999999999999 !important;
   font-family: "Verdana", sans-serif;
 }
@@ -63,21 +61,16 @@
 .custom-social-proof .custom-notification .custom-close {
   position: absolute;
   top: 14px;
-  border: 1px solid grey;
-  color: white;
-  border-radius: 10px;
+  color: #d2b3cfd4;
   padding: 1px;
-  right: 14px;
+  right: 21px;
   height: 12px;
   width: 12px;
   cursor: pointer;
   transition: 0.2s ease-in-out;
-  transform: rotate(45deg);
   opacity: 0;
 }
 .custom-social-proof .custom-notification .custom-close::before {
-  content: "";
-  display: block;
   width: 100%;
   height: 2px;
   background-color: gray;
@@ -86,8 +79,6 @@
   top: 5px;
 }
 .custom-social-proof .custom-notification .custom-close::after {
-  content: "";
-  display: block;
   height: 100%;
   width: 2px;
   background-color: gray;
