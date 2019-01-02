@@ -48,17 +48,52 @@ const changePosition = (position) => {
   return $('.custom-social-proof').css(positions[position]);
 }
 
+const addWidget = (res) => {
+  customize = !res ? customize : res;
+  widget.innerHTML = `
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <section id="social_proof" class="custom-social-proof">
+      <div class="custom-notification">
+        <div class="custom-notification-container">
+          ${getInnerHTML(customize.initialCard)}
+        </div>
+        <div class="custom-close"><i class="fa fa-times-circle-o"></i>
+        </div>
+      </div>
+    </section>
+  `;
+  $form.append(widget);
+  changePosition(customize.appearFrom);
+}
+
 $(() => {
-  changePosition('bottomRight');
+  addWidget();
   setInterval(function() {
-    $(".custom-social-proof").stop().slideToggle('slow', function() {
-      $( "p.custom-notification-content" ).html(showAlternate());
-    });
-  }, 3000);
+    $(".custom-social-proof").stop().toggle('slide', { direction: customize.direction || 'down' }, function() {
+      if ($(this).is(':hidden')) {
+        contentIndex++;
+        contentIndex = contentIndex === customize.supportedCards.length ? 0 : contentIndex;
+        $(".custom-notification-container").html(getInnerHTML(customize.supportedCards[contentIndex]));
+      }
+    })
+  }, 2000);
+
   $(".custom-close").click(function() {
     $(".custom-social-proof").stop().slideToggle('slow');
   });
+
+  //code to record submit actions
+  $submitActors.click((event) => {
+    if(targetLinks.includes(location.pathname)) {
+     event.preventDefault();
+     totalSigned = totalSigned + 1;
+     $(".custom-notification-container" ).html(getInnerHTML('totalSigned')).delay(5000);
+    }
+  });
 })
+
 
 function showContent(code, param1 = '', param2 = '') {
   switch (code) {
