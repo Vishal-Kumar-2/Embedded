@@ -25,8 +25,31 @@ const getBackendData = () => {
     });
   })
 }
+const positions = {
+  topLeft: {
+    'top': '20px',
+    'left': '20px',
+  },
+  topRight: {
+    'top': '20px',
+    'right': '20px',
+  },
+  bottomRight: {
+    'bottom': '20px',
+    'right': '20px',
+  },
+  bottomLeft: {
+    'bottom': '20px',
+    'left': '20px',
+  }
+}
+
+const changePosition = (position) => {
+  return $('.custom-social-proof').css(positions[position]);
+}
 
 $(() => {
+  changePosition('bottomRight');
   setInterval(function() {
     $(".custom-social-proof").stop().slideToggle('slow', function() {
       $( "p.custom-notification-content" ).html(showAlternate());
