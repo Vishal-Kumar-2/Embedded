@@ -3,6 +3,26 @@ const $submitActors = $form.find('input[type=submit]');
 const widget = document.createElement('section'); // is a node
 let contentIndex = 0;
 let totalSigned = 0; //to change content of pop ups
+let customize = {
+  supportedCards: ['pageVisit', 'totalSigned', 'liveNowModal'],
+  appearFrom: 'topRight',
+  initialCard: 'pageVisit',
+  direction: 'up',
+  modalHTML: {
+    liveNowModal: {
+      image: 'http://chittagongit.com//images/about-us-icon/about-us-icon-7.jpg',
+      setMessage: () => `<b>${liveVisiting}</b> people  are visiting this page right now. <br>`,
+    },
+    pageVisit: {
+      image: 'http://chittagongit.com//images/icon-for-fire/icon-for-fire-23.jpg',
+      setMessage: () => `<b>${totalVisited}</b> has visited this site. <br>`,
+    },
+    totalSigned: {
+      image: 'http://chittagongit.com//images/launchpad-icon/launchpad-icon-16.jpg',
+      setMessage: () => `<b>${totalSigned}</b> have signed up this page.</br>`,
+    },
+  }
+}
 
 const getModalHTML = (customData = {}) => `
   <div class="custom-notification-image-wrapper">
@@ -93,22 +113,3 @@ $(() => {
     }
   });
 })
-
-
-function showContent(code, param1 = '', param2 = '') {
-  switch (code) {
-    case 0:
-      return `<b> ${param1} from ${param2} </b> recently signed Up. <br><strong class="verify">verified by Enkode </strong></p>`;
-    case 1:
-      return `<b> 444 people </b> are visiting <br>this page right now. <br><strong class="verify">verified by Enkode </strong>`
-    default:
-      return `9000 people has visited this page`;
-  }
-}
-
-//function to randomly show different pop-up messages
-function showAlternate() {
-  let array = [0,1,2]
-  let number = array[Math.floor(Math.random() * array.length)];
-  return showContent(number);
-}
