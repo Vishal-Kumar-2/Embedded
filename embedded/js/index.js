@@ -8,20 +8,20 @@ let liveVisiting = 0;
 let totalSigned = 0; //to change content of pop ups
 let customize = {
   supportedCards: ['pageVisit', 'totalSigned', 'liveNowModal'],
-  appearFrom: 'topRight',
+  appearFrom: 'bottomRight',
   initialCard: 'pageVisit',
-  direction: 'up',
+  direction: 'down',
   modalHTML: {
     liveNowModal: {
-      image: 'http://chittagongit.com//images/about-us-icon/about-us-icon-7.jpg',
+      image: './images/image1.jpg',
       setMessage: () => `<b>${liveVisiting}</b> people  are visiting this page right now. <br>`,
     },
     pageVisit: {
-      image: 'http://chittagongit.com//images/icon-for-fire/icon-for-fire-23.jpg',
+      image: './images/image2.jpg',
       setMessage: () => `<b>${totalVisited}</b> has visited this site. <br>`,
     },
     totalSigned: {
-      image: 'http://chittagongit.com//images/launchpad-icon/launchpad-icon-16.jpg',
+      image: './images/image5.jpg',
       setMessage: () => `<b>${totalSigned}</b> have signed up this page.</br>`,
     },
   }
@@ -73,10 +73,10 @@ const addWidget = (res) => {
             <p id="modal-content" class="custom-notification-content">
               ${customize.modalHTML[customize.initialCard].setMessage()}
             </p>
-            <strong class="verify"><img src='check-circle.png'> verified by Enkode </strong>
+            <strong class="verify"><img src='./images/check-circle.png'> verified by Enkode </strong>
           </div>
         </div>
-        <div class="custom-close"><img src='close-icon.png'>
+        <div class="custom-close"><img src='./images/close-icon.png'>
         </div>
       </div>
     </section>

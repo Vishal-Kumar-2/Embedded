@@ -16,6 +16,7 @@
   position: relative;
   cursor: pointer;
   border: 1px solid rgba(0,0,0,.2);
+  width: 300px;
 }
 .custom-social-proof .custom-notification .custom-notification-container {
   display: flex !important;
