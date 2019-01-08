@@ -1,59 +1,47 @@
-var count = 400;
-var widget = document.createElement('section'); // is a node
-const modals = ['liveNowModal', 'totalCountModal', 'recentlySigned'];
+const $body = $('body');
+const $submitActors = $body.find('input[type=submit]');
+const baseUrl = 'http://localhost:5000';
+const widget = document.createElement('section'); // is a node
 let contentIndex = 0;
-
-const getInnerHTML = (modal, name = '', city = '') => {
-  const modalHTML = {
+let totalVisited = 0;
+let liveVisiting = 0;
+let totalSigned = 0; //to change content of pop ups
+let customize = {
+  supportedCards: ['pageVisit', 'totalSigned', 'liveNowModal'],
+  appearFrom: 'topRight',
+  initialCard: 'pageVisit',
+  direction: 'up',
+  modalHTML: {
     liveNowModal: {
-      image: 'https://static1.squarespace.com/static/525dcddce4b03a9509e033ab/t/526800ffe4b0ee2599668050/1382547712599/fire.png',
-      msg: `<b class='count'> ${count} </b> people  are visiting <br>this page right now. <br>`,
+      image: 'http://chittagongit.com//images/about-us-icon/about-us-icon-7.jpg',
+      setMessage: () => `<b>${liveVisiting}</b> people  are visiting this page right now. <br>`,
     },
-    totalCountModal: {
-      image: 'https://tidings.today/wp-content/uploads/2018/08/tidings-today-smartphones-1-768x576.jpg',
-      msg: `<b class='count'> ${count} has visited this site. <br>`,
+    pageVisit: {
+      image: 'http://chittagongit.com//images/icon-for-fire/icon-for-fire-23.jpg',
+      setMessage: () => `<b>${totalVisited}</b> has visited this site. <br>`,
     },
-    recentlySigned: {
-      image: 'https://tidings.today/wp-content/uploads/2018/08/tidings-today-logo-fav.png',
-      msg: `<b> ${name} from ${city} </b>signed up <br>this page right now.</br>`,
+    totalSigned: {
+      image: 'http://chittagongit.com//images/launchpad-icon/launchpad-icon-16.jpg',
+      setMessage: () => `<b>${totalSigned}</b> have signed up this page.</br>`,
     },
   }
-  return getModalHTML(modalHTML[modal])
 }
 
-const getModalHTML = (customData = {}) => `
-  <div class="custom-notification-image-wrapper">
-    <img src="${customData.image}">
-  </div>
-  <div class="custom-notification-content-wrapper">
-    <p class="custom-notification-content">
-      ${customData.msg} <strong class="verify"><i class="fa fa-check-circle"></i> verified by Enkode </strong>
-    </p>
-  </div>`;
+const getInnerHTML = (modal) => getModalHTML(customize.modalHTML[modal])
 
-// call common function for variable parameters
-widget.innerHTML = `
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" type="text/css" href="css/index.css"/>
-  <section class="custom-social-proof" >
-    <div class="custom-notification">
-      <div class="custom-notification-container">
-        ${getInnerHTML('liveNowModal')}
-      </div>
-      <div class="custom-close"><i class="fa fa-times-circle-o"></i>
-      </div>
-    </div>
-  </section>
-`;
+const getModalHTML = (customData = {}) => {
+  $("#modal-image").attr("src", customData.image)
+  $("#modal-content").html(customData.setMessage())
+}
 
 const positions = {
   topLeft: {
-    'top': '8px',
-    'left': '16px',
+    'top': '20px',
+    'left': '20px',
   },
   topRight: {
-    'top': '8px',
-    'right': '16px',
+    'top': '20px',
+    'right': '20px',
   },
   bottomRight: {
     'bottom': '20px',
@@ -69,37 +57,133 @@ const changePosition = (position) => {
   return $('.custom-social-proof').css(positions[position]);
 }
 
-$(() => {
-  let $form = $('body');
-  let $submitActors = $form.find('input[type=submit]');
-  let targetLinks = ['/home/rails/work/embedded/embedded/example.html'];
+const addWidget = (res) => {
+  // If we get empty response then we use our default modals
+  customize = res || customize;
+  widget.innerHTML = `
+    <link rel="stylesheet" type="text/css" href="build/css/index.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <section id="social_proof" class="custom-social-proof">
+      <div class="custom-notification">
+        <div class="custom-notification-container">
+          <div class="custom-notification-image-wrapper">
+            <img id="modal-image" src="${customize.modalHTML[customize.initialCard].image}">
+          </div>
+          <div class="custom-notification-content-wrapper">
+            <p id="modal-content" class="custom-notification-content">
+              ${customize.modalHTML[customize.initialCard].setMessage()}
+            </p>
+            <strong class="verify"><img src='check-circle.png'> verified by Enkode </strong>
+          </div>
+        </div>
+        <div class="custom-close"><img src='close-icon.png'>
+        </div>
+      </div>
+    </section>
+  `;
+  $body.append(widget);
+  changePosition(customize.appearFrom);
+}
 
-  $form.append(widget);
-  changePosition('bottomRight');
+const getDataUsingToken = () => {
+  return new Promise((resolve, reject) => {
+    return $.ajax({
+      dataType: 'json',
+      url: `${baseUrl}/customize/defsfsby`,
+      crossDomain: true,
+      success: (data) => resolve(data),
+      error: reject,
+    });
+  });
+}
+
+const recordTotalVisitCount = () => {
+  return new Promise((resolve, reject) => {
+    // TODO: fire API call to update total visit when backend ready
+    // $.ajax({
+    //   type: 'POST',
+    //   url: `${baseUrl}/totalVisits`,
+    //   crossDomain: true,
+    //   data : record unique IP addressess using req.ip at backend
+    //   var ip = req.headers['x-forwarded-for'] ||
+    //            req.connection.remoteAddress ||
+    //            req.socket.remoteAddress ||
+    //            (req.connection.socket ? req.connection.socket.remoteAddress : null);
+    //   success: (count) => resolve(count)
+    //   }
+    // })
+    // Mocking updated total visit users count
+    return resolve(67);
+  })
+}
+
+const updateSubmitAction = () => {
+  return new Promise((resolve, reject) => {
+    // TODO: fire API call to update action when backend ready
+    // $.ajax({
+      //  type: 'POST',
+      //  url: `${baseUrl}/submits`,
+      //  data:
+      //  crossDomain: true,
+      //  success:
+      //  }
+      //})
+      // Mocking updated submit count
+    return resolve(totalSigned);
+  });
+}
+
+$(() => {
+  //Gets custom field using token
+  getDataUsingToken()
+    .then(data => addWidget(data))
+  .catch((err) => {
+    console.error(`Backend server is off! ${err}`);
+    addWidget();
+  });
+
+  const shuffleCounts = () => {
+    //This is to mock real data, Actual implementation to be done by SOCKET CONNECTION
+    liveVisiting = (Math.floor(Math.random() * (20 + 1)));
+    totalSigned = (Math.floor(Math.random() * (20 + 1)));
+    totalVisited = (Math.floor(Math.random() * (20 + 1)));
+  }
 
   setInterval(function() {
-    $(".custom-social-proof").stop().slideToggle('slow')
-    contentIndex++;
-    contentIndex = contentIndex === modals.length ? 0 : contentIndex;
-    $(".custom-notification-container").html(getInnerHTML(modals[contentIndex]));
-  }, 5000);
+    $(".custom-social-proof").stop().toggle('slide', { direction: customize.direction || 'down' }, function() {
+      if ($(this).is(':hidden')) {
+        contentIndex++;
+        contentIndex = contentIndex === customize.supportedCards.length ? 0 : contentIndex;
+        getInnerHTML(customize.supportedCards[contentIndex])
+        //todo: Establish socket connection to update live counts
+        shuffleCounts()
+      }
+    });
+  }, 2000);
 
   $(".custom-close").click(() => {
     $(".custom-social-proof").stop().slideToggle('slow');
   });
 
+
   $submitActors.click((event) => {
-    if(targetLinks.includes(location.pathname)) {
-     event.preventDefault();
-     count = count + 1;
-     $(".custom-notification-container" ).html(getInnerHTML('recentlySigned', event.target.value, 'California')).delay(5000);
-    }
+      event.preventDefault();
+     updateSubmitAction()
+      .then(updatedTotalSigned => {
+        totalSigned = updatedTotalSigned;
+      })
+      .catch((err) => console.error(`Backend server is off! ${err}`))
   });
 
-  // remaining code
-  //   to count the number of visitors to website    API to record number of visitors
-  // using nodejs request object or express, req.ip
-  // $( window ).on( "load", function() {
-  //   createBackend();
-  // });
-})
+  $( window ).on( "load", function() {
+    recordTotalVisitCount()
+    .then(updatedTotalVisited => {
+      totalVisited = updatedTotalVisited;
+      //Update DOM
+    })
+    .catch(err => {
+      console.error(`Backend server is off! ${err}`);
+      addWidget();
+    });
+  });
+});
