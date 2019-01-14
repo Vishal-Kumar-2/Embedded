@@ -2,36 +2,82 @@ const $body = $('body');
 const $submitActors = $body.find('input[type=submit]');
 const baseUrl = 'http://localhost:5000';
 const widget = document.createElement('section'); // is a node
-let contentIndex = 0;
+let contentIndex = 0; //to change content of pop ups
 let totalVisited = 0;
 let liveVisiting = 0;
-let totalSigned = 0; //to change content of pop ups
+let totalSigned = 0;
+let onlyOnce = true;
+let recentIndex = 0; //alternate recent activities pop-ups
 let customize = {
-  supportedCards: ['pageVisit', 'totalSigned', 'liveNowModal'],
-  appearFrom: 'bottomRight',
+  supportedCards: ['pageVisit','recentlyVisited', 'totalSigned', 'liveNowModal'],
+  appearFrom: 'topRight',
   initialCard: 'pageVisit',
-  direction: 'down',
+  theme: 'rounded',
+  showDirection: 'up',
+  hideDirection: 'up',
+  captureLinks: ['home', 'about', 'signUp'],
+  targetLinks: ['signUp'],
+  notification: {
+    firstDelay: 1000,
+    duration: 3000,
+    timeGapBetweenEach: 1000,
+    transitionTime: 400
+  },
+  liveNowNotLoop: false,
+  pageVisitNotLoop: true, // will show only once
+  recentActivityNotLoop: false,
+  effectOptions: { direction : 'up' },
   modalHTML: {
     liveNowModal: {
       image: './images/image1.jpg',
-      setMessage: () => `<b>${liveVisiting}</b> people  are visiting this page right now. <br>`,
+      setMessage: () => `<b>${liveVisiting}</b> people  are visiting this page right now.`,
     },
     pageVisit: {
-      image: './images/image2.jpg',
-      setMessage: () => `<b>${totalVisited}</b> has visited this site. <br>`,
+      image: './images/image6.png',
+      setMessage: () => `<b>${totalVisited}</b> has visited this site.<br><small>in the last 7 days</small>`,
     },
     totalSigned: {
       image: './images/image5.jpg',
-      setMessage: () => `<b>${totalSigned}</b> have signed up this page.</br>`,
+      setMessage: () => `<b>${totalSigned}</b> have signed up this page.<br><small> 1 hour ago</small>`,
     },
+    recentlyVisited: [
+      {
+        image: './images/image6.png',
+        setMessage: () => `<b>${name ='Lisa'} from ${city= 'California'}</b> have signed up.<br><small> 1 hour ago</small>`,
+      },
+      {
+        image: './images/image6.png',
+        setMessage: () => `<b>${name = 'Parina'} from ${city = 'Texas'}</b> have signed up.<br><small> 1 hour ago</small>`,
+      },
+      {
+        image: './images/image6.png',
+        setMessage: () => `<b>${name = 'Sirana'} from ${city = 'India'}</b> have signed up.<br><small> 1 hour ago</small>`,
+      },
+      {
+        image: './images/image6.png',
+        setMessage: () => `<b>${name = 'Linda'} from ${city = 'Coimbatore'}</b> have signed up.<br><small> 1 hour ago</small>`,
+      }
+    ]
   }
 }
 
-const getInnerHTML = (modal) => getModalHTML(customize.modalHTML[modal])
+const getInnerHTML = (modal) => {
+  return new Promise((resolve, reject) => {
+    if(customize.modalHTML[modal] instanceof Array) {
+      recentIndex = recentIndex === customize.modalHTML[modal].length ? 0 : recentIndex;
+      getModalHTML(customize.modalHTML[modal][recentIndex])
+      recentIndex++;
+      resolve();
+    } else {
+      getModalHTML(customize.modalHTML[modal]);
+      resolve();
+    }
+  })
+}
 
 const getModalHTML = (customData = {}) => {
-  $("#modal-image").attr("src", customData.image)
-  $("#modal-content").html(customData.setMessage())
+  $("#modal-image").attr("src", customData.image);
+  $("#modal-content").html(customData.setMessage());
 }
 
 const positions = {
@@ -53,16 +99,30 @@ const positions = {
   }
 }
 
+const themes = {
+  rounded: {
+    'border-radius': '50px'
+  },
+  boxy: {
+    'border-radius': '10px'
+  }
+}
+
 const changePosition = (position) => {
   return $('.custom-social-proof').css(positions[position]);
+}
+
+const applyTheme = (theme) => {
+  return $('.custom-notification').css(themes[theme]);
 }
 
 const addWidget = (res) => {
   // If we get empty response then we use our default modals
   customize = res || customize;
   widget.innerHTML = `
-    <link rel="stylesheet" type="text/css" href="build/css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <div id='block'>
     <section id="social_proof" class="custom-social-proof">
       <div class="custom-notification">
         <div class="custom-notification-container">
@@ -80,16 +140,23 @@ const addWidget = (res) => {
         </div>
       </div>
     </section>
+    </div>
   `;
-  $body.append(widget);
-  changePosition(customize.appearFrom);
+  // if(customize.targetLinks.includes(location.pathname)) {
+    setTimeout(function() {
+      $body.append(widget);
+      applyTheme(customize.theme);
+      changePosition(customize.appearFrom);
+      setModalShowPattern(customize.notification);
+    }, customize.notification.firstDelay );
+  // }
 }
 
 const getDataUsingToken = () => {
   return new Promise((resolve, reject) => {
     return $.ajax({
       dataType: 'json',
-      url: `${baseUrl}/customize/defsfsby`,
+      url: `${baseUrl}/customize?token=def`,
       crossDomain: true,
       success: (data) => resolve(data),
       error: reject,
@@ -114,7 +181,7 @@ const recordTotalVisitCount = () => {
     // })
     // Mocking updated total visit users count
     return resolve(67);
-  })
+  });
 }
 
 const updateSubmitAction = () => {
@@ -133,6 +200,56 @@ const updateSubmitAction = () => {
   });
 }
 
+const shuffleCounts = () => {
+  //This is to mock real data, Actual implementation to be done by SOCKET CONNECTION
+  liveVisiting = (Math.floor(Math.random() * (20 + 1)));
+  totalSigned = (Math.floor(Math.random() * (20 + 1)));
+  totalVisited = (Math.floor(Math.random() * (20 + 1)));
+}
+
+const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const hideModal = (transitionTime) => new Promise((resolve, reject) => {
+  $(".custom-social-proof").hide('slide', { direction: customize.hideDirection }, transitionTime, function() {
+    contentIndex++;
+    contentIndex = contentIndex === customize.supportedCards.length ? 0 : contentIndex;
+    getInnerHTML(customize.supportedCards[contentIndex]);
+    resolve();
+  });
+});
+
+const showModal = (transitionTime) => new Promise((resolve, reject) => {
+  $(".custom-social-proof").show('slide', { direction: customize.showDirection } , transitionTime)
+  if(contentIndex === (customize.supportedCards.length-1)  && onlyOnce) {
+    if(customize.liveNowNotLoop)
+      customize.supportedCards = customize.supportedCards.filter(item => item !== 'liveNowModal');
+    if(customize.pageVisitNotLoop)
+      customize.supportedCards = customize.supportedCards.filter(item => item !== 'pageVisit');
+    if(customize.recentActivityNotLoop)
+      customize.supportedCards = customize.supportedCards.filter(item => item !== 'recentlyVisited');
+    onlyOnce = false;
+    contentIndex = 0;
+  }
+  resolve();
+});
+
+const setModalShowPattern = (notificationData = {}) => {
+  const safetyBuffer = 200;
+  const { timeGapBetweenEach, duration, transitionTime } = notificationData;
+  const timeGap = timeGapBetweenEach + duration + (transitionTime * 2 ) + safetyBuffer;
+  return new Promise((resolve, reject) => {
+    setInterval(function() {
+      hideModal(transitionTime)
+        .then(() => sleep(timeGapBetweenEach))
+        .then(() => showModal(transitionTime))
+        .then(() => sleep(duration))
+    }, timeGap);
+    resolve();
+  });
+}
+
 $(() => {
   //Gets custom field using token
   getDataUsingToken()
@@ -142,33 +259,13 @@ $(() => {
     addWidget();
   });
 
-  const shuffleCounts = () => {
-    //This is to mock real data, Actual implementation to be done by SOCKET CONNECTION
-    liveVisiting = (Math.floor(Math.random() * (20 + 1)));
-    totalSigned = (Math.floor(Math.random() * (20 + 1)));
-    totalVisited = (Math.floor(Math.random() * (20 + 1)));
-  }
-
-  setInterval(function() {
-    $(".custom-social-proof").stop().toggle('slide', { direction: customize.direction || 'down' }, function() {
-      if ($(this).is(':hidden')) {
-        contentIndex++;
-        contentIndex = contentIndex === customize.supportedCards.length ? 0 : contentIndex;
-        getInnerHTML(customize.supportedCards[contentIndex])
-        //todo: Establish socket connection to update live counts
-        shuffleCounts()
-      }
-    });
-  }, 2000);
-
   $(".custom-close").click(() => {
     $(".custom-social-proof").stop().slideToggle('slow');
   });
 
-
   $submitActors.click((event) => {
-      event.preventDefault();
-     updateSubmitAction()
+    event.preventDefault();
+    updateSubmitAction()
       .then(updatedTotalSigned => {
         totalSigned = updatedTotalSigned;
       })
