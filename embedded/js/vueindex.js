@@ -14,22 +14,22 @@ let recentActivities = [
   { name: 'Linda', city: 'Cala', timeStamp: '' }
 ]
 
+// PARENT COMPOENENT
 Vue.component('widget', {
   template: `
-  <transition name="bounceTop" mode="out-in">
-    <div id='block' v-show="show">
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <section id="social_proof" class="custom-social-proof" :style="positions[customize.appearFrom]" >
+  <div id='block' :style="positions[customize.appearFrom]">
+  <link rel="stylesheet" type="text/css" href="css/index.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <transition :name="customize.direction">
+      <section id="social_proof" class="custom-social-proof"  v-show="show" :style="positions[customize.appearFrom]" >
         <div class="custom-notification" :style="themes[customize.theme]">
-          <VariantModal :customize="customize" @toggleDisplay="show = !show"> </VariantModal>
+          <VariantModal :customize="customize" v-model="show" @toggle="show = !show"> </VariantModal>
           <div class="custom-close" v-on:click="show=!show"><img src='./images/close-icon.png'></div>
         </div>
       </section>
-    </div>
-  </transition>
+    </transition>
+  </div>
  `,
-
   data() {
     return {
       show: true,
@@ -61,17 +61,16 @@ Vue.component('widget', {
       },
       customize: {
         supportedCards: ['pageVisit','recentlyVisited', 'totalSigned', 'liveNowModal'],
-        appearFrom: 'topRight',
+        appearFrom: 'bottomRight',
         initialCard: 'pageVisit',
         theme: 'rounded',
-        direction: 'bounceBottom', // or 'bounceTop'
-        hideDirection: 'up',
+        direction: 'bounceBottom', // or 'bounceTop' or 'bounceBottom'
         captureLinks: ['home', 'about', 'signUp'],
         targetLinks: ['signUp'],
         notification: {
-          firstDelay: 1000,
+          firstDelay: 5000,
           duration: 3000,
-          timeGapBetweenEach: 1000,
+          timeGapBetweenEach: 5000,
           transitionTime: 400
         },
         liveNowNotLoop: false, // will show only once
@@ -98,6 +97,7 @@ Vue.component('widget', {
       },
     }
   },
+
   created() {
     axios
       .get(`${baseUrl}/customize?token=def`)
@@ -106,8 +106,14 @@ Vue.component('widget', {
       })
       .catch(error => console.log(error))
   },
+  methods: {
+    sleep: function(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    },
+  }
 })
 
+// CHILD COMPONENT
 Vue.component('VariantModal', {
   template: `
     <div class="custom-notification-container">
@@ -133,7 +139,6 @@ Vue.component('VariantModal', {
       onlyOnce: true
     }
   },
-
   mounted : function() {
     this.setModalShowPattern(this.customize);
   },
@@ -145,7 +150,7 @@ Vue.component('VariantModal', {
 
     hideModal: function() {
       return new Promise((resolve, reject) => {
-        this.$emit('toggleDisplay', false)
+        this.$emit("toggle", false)
         this.image = this.modalHTML[this.supportedCards[this.index]].image
         let key = this.supportedCards[this.index]
         switch (key) {
@@ -169,13 +174,14 @@ Vue.component('VariantModal', {
         }
         this.index = this.index + 1;
         this.index = this.index === this.supportedCards.length ? 0 : this.index;
+
         resolve();
       })
     },
 
     showModal: function() {
       new Promise((resolve, reject) => {
-        this.$emit('toggleDisplay', true)
+        this.$emit("toggle", true)
         if(this.index === (this.supportedCards.length-1) && this.onlyOnce) {
           if(this.customize.liveNowNotLoop)
           this.supportedCards = this.supportedCards.filter(item => item !== 'liveNowModal');
@@ -302,9 +308,9 @@ const appendWidget = (token) => new Promise((resolve, reject) => {
   document.body.appendChild(e);
   var app = new Vue({
     el: "#blockmain",
-    template: `<div>
-        <widget></widget>
-      </div>`,
+    template: `<div id="mainEnkodeDiv">
+                  <widget></widget>
+                </div>`,
   })
   resolve();
 })

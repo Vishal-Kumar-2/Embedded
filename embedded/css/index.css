@@ -104,46 +104,25 @@
   opacity: 0;
 }
 .bounceBottom-enter-active {
-	animation: bounceBottomUp 1.1s linear both;
+	animation: bounceBottomUp 2s linear both;
 }
 
  @keyframes bounceBottomUp {
-	 0% {
-		transform: matrix(1, 0, 0, 1, 0, 100);
-
-	}
 	 4.1% {
 		transform: matrix(1, 0, 0, 1, 0, 41.971);
 
 	}
-	 8.11% {
-		transform: matrix(1, 0, 0, 1, 0, 10.549);
 
-	}
 	 12.11% {
 		transform: matrix(1, 0, 0, 1, 0, -1.843);
 
 	}
-	 16.12% {
-		transform: matrix(1, 0, 0, 1, 0, -4.336);
 
-	}
-	 27.23% {
-		transform: matrix(1, 0, 0, 1, 0, -.784);
-
-	}
 	 38.34% {
 		transform: matrix(1, 0, 0, 1, 0, .104);
 
 	}
-	 60.56% {
-		transform: matrix(1, 0, 0, 1, 0, -.002);
 
-	}
-	 82.78% {
-		transform: matrix(1, 0, 0, 1, 0, 0);
-
-	}
 	 to {
 		transform: matrix(1, 0, 0, 1, 0, 0);
 
@@ -164,10 +143,6 @@
 		transform: matrix(1, 0, 0, 1, 0, 54.927);
 
 	}
-	 8.31% {
-		transform: matrix(1, 0, 0, 1, 0, 88.411);
-
-	}
 	 12.51% {
 		transform: matrix(1, 0, 0, 1, 0, 103.215);
 
@@ -177,67 +152,44 @@
 
 	}
 	 27.73% {
-		transform: matrix(1, 0, 0, 1, 0, 101.285);
+		transform: matrix(1, 0, 0, 1, 0, 150.285);
 
 	}
-	 38.84% {
-		transform: matrix(1, 0, 0, 1, 0, 99.747);
 
-	}
-	 61.06% {
-		transform: matrix(1, 0, 0, 1, 0, 100.01);
-
-	}
-	 83.28% {
-		transform: matrix(1, 0, 0, 1, 0, 100);
-
-	}
 	 to {
-		transform: matrix(1, 0, 0, 1, 0, 100);
+		transform: matrix(1, 0, 0, 1, 0, 150);
 
 	}
 
 }
 
 .bounceTop-enter-active {
-	animation: bounceTopDown 1100down linear both;
+	animation: bounceTopDown 1100 down linear both;
 }
 
  @keyframes bounceTopDown {
 	0% {
-		transform: matrix(1, 0, 0, 1, 0, -100);
-
-	}
-	 4.1% {
-		transform: matrix(1, 0, 0, 1, 0, -41.971);
+		transform: matrix(1, 0, 0, 1, 0, -150);
 
 	}
 	 8.11% {
-		transform: matrix(1, 0, 0, 1, 0, -10.549);
+		transform: matrix(1, 0, 0, 1, 0, -130.549);
 
 	}
 	 12.11% {
-		transform: matrix(1, 0, 0, 1, 0, 1.843);
-
-	}
-	 16.12% {
-		transform: matrix(1, 0, 0, 1, 0, 4.336);
+		transform: matrix(1, 0, 0, 1, 0, -111.843);
 
 	}
 	 27.23% {
-		transform: matrix(1, 0, 0, 1, 0, .784);
+		transform: matrix(1, 0, 0, 1, 0, -50.784);
 
 	}
 	 38.34% {
-		transform: matrix(1, 0, 0, 1, 0, -.104);
+		transform: matrix(1, 0, 0, 1, 0, -5.104);
 
 	}
 	 60.56% {
-		transform: matrix(1, 0, 0, 1, 0, .002);
-
-	}
-	 82.78% {
-		transform: matrix(1, 0, 0, 1, 0, 0);
+		transform: matrix(1, 0, 0, 1, 0, -3.002);
 
 	}
 	 to {
@@ -259,37 +211,36 @@
 		transform: matrix(1, 0, 0, 1, 0, -58.029);
 
 	}
-	 8.11% {
-		transform: matrix(1, 0, 0, 1, 0, -89.451);
-
-	}
 	 12.11% {
 		transform: matrix(1, 0, 0, 1, 0, -101.843);
 
 	}
 	 16.12% {
-		transform: matrix(1, 0, 0, 1, 0, -104.336);
+		transform: matrix(1, 0, 0, 1, 0, -111.336);
 
 	}
 	 27.23% {
-		transform: matrix(1, 0, 0, 1, 0, -100.784);
+		transform: matrix(1, 0, 0, 1, 0, -130.784);
 
 	}
-	 38.34% {
-		transform: matrix(1, 0, 0, 1, 0, -99.896);
+	 58.34% {
+		transform: matrix(1, 0, 0, 1, 0, -140.896);
 
 	}
-	 60.56% {
-		transform: matrix(1, 0, 0, 1, 0, -100.002);
 
-	}
-	 82.78% {
-		transform: matrix(1, 0, 0, 1, 0, -100);
-
-	}
 	 to {
-		transform: matrix(1, 0, 0, 1, 0, -100);
+		transform: matrix(1, 0, 0, 1, 0, -150);
 
 	}
+}
+/*
+#social_proof {
+	top: -15px !important;
+} */
 
+#block, #mainEnkodeDiv {
+	position: fixed;
+	width: 325px;
+	display: inline-block;
+	height: 96px;
 }
