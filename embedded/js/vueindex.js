@@ -240,7 +240,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
       let eventData = JSON.parse(event.data);
       if (eventData.type === 'CUSTOMIZABLE_PARAMS') {
         const { totalVisited, liveVisiting, totalSigned } = eventData.value
-        recentActivities = eventData.value.activities
+        recentActivities = Object.values(eventData.value.recentActivities)
         data = { totalVisited, liveVisiting, totalSigned }
       }
     } catch(err) {
@@ -249,58 +249,51 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
   })
 
   // collect form data and pass to firebase
-  submitActors = document.getElementsByTagName('input');
+  submitActors = document.getElementsByTagName('form');
   let submitDetails = {}
-  for (let i = 0; i < submitActors.length; i++) {
-
-    submitDetails[submitActors[i]['name']] = submitActors[i]['value'];
-
-    if(submitActors[i].type === 'submit') {
-      submitActors[i].addEventListener('click', () => {
-        event.preventDefault();
-        console.log('inside updateeeeeee');
-        // get ip
-        $.get("http://ipinfo.io", function(response) {
-          let ip  = response.ip
-        }, "jsonp");
-
-        message = {
-          type: 'SUBMIT',
-          value: {
-            formData: submitDetails,
-            ip: ''
-          }
-        }
-        var iframe = document.getElementById("enkodeframe");
-        var iframeWindow = (iframe.contentWindow || iframe.contentDocument);
-         iframeWindow.postMessage(message, '*')
-        // updateSubmitAction(submitDetails)
-        //   .then(updatedTotalSigned => {
-        //     totalSigned = updatedTotalSigned;
-        //   })
-        //   .catch((err) => console.error(`Backend server is off! ${err}`))
-      });
+  submitActors[0].addEventListener('submit', (event) => {
+    event.preventDefault();
+    for (let i = 1; i < event.currentTarget.length; i++) {
+      if(event.currentTarget[i]['name']) {
+        submitDetails[event.currentTarget[i]['name']] = event.currentTarget[i]['value'];
+      }
     }
-  }
-  // .. all other listeners
-  resolve();
+    // get ip
+    $.get("http://ipinfo.io", function(response) {
+      debugger;
+      submitDetails['ip'] = response.ip
+      submitDetails['city'] = response.city
+      submitDetails['country'] = response.country
+      submitDetails['loc'] = response.loc
+
+      message = {
+        type: 'SUBMIT',
+        value: submitDetails
+      }
+      var iframe = document.getElementById("enkodeframe");
+      var iframeWindow = (iframe.contentWindow || iframe.contentDocument);
+      iframeWindow.postMessage(JSON.stringify(message), '*')
+    }, "jsonp");
+  })
+  resolve();  
  });
 
-const attachEventEmitter = (dbRef) => new Promise((resolve, reject) => {
-  // emitEvent(`${token}_page_visits`, event => {
-  //   message = {
-  //     type: 'PAGE_VISIT',
-  //     value: data.pageVisit + 1,
-  //   }
-  //   targetWindow.postMessage(JSON.stringify(message), location.origin)
-  // })
+const updateLiveCount = (dbRef) => new Promise((resolve, reject) => {
+  emitEvent(`${token}_page_visits`, event => {
+    message = {
+      type: 'PAGE_VISIT',
+      value: data.liveVisiting + 1,
+    }
+    targetWindow.postMessage(JSON.stringify(message), "*")
+  })
 
   resolve();
 });
 
 const emitEvent = (eventName, data) => {
   JSON.stringify({ type: 'SUBMIT', value: { name: '', email: '' } })
-  window.postMessage(data, location.origin)
+  // TODO: change '*' to location.origin
+  window.postMessage(data, '*')
 }
 
 const appendWidget = (token) => new Promise((resolve, reject) => {
@@ -324,5 +317,5 @@ const getQueryParam = (key = 'token') => {
 
 const token = getQueryParam()
 window.onload = appendWidget(token)
-                  .then(() => attachEventListeners())
-                  .then(() => attachEventEmitter())
+                  .then(attachEventListeners)
+                  .then(updateLiveCount)
