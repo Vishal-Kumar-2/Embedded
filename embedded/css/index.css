@@ -107,26 +107,37 @@
 	animation: bounceBottomUp 2s linear both;
 }
 
- @keyframes bounceBottomUp {
-	 4.1% {
-		transform: matrix(1, 0, 0, 1, 0, 41.971);
-
-	}
-
-	 12.11% {
-		transform: matrix(1, 0, 0, 1, 0, -1.843);
-
-	}
-
-	 38.34% {
-		transform: matrix(1, 0, 0, 1, 0, .104);
-
-	}
-
-	 to {
-		transform: matrix(1, 0, 0, 1, 0, 0);
-
-	}
+@keyframes bounceBottomUp {
+	0% {
+	 transform: matrix(1, 0, 0, 1, 0, 100);
+  }
+	4.1% {
+	  transform: matrix(1, 0, 0, 1, 0, 41.971);
+  }
+	8.11% {
+	  transform: matrix(1, 0, 0, 1, 0, 10.549);
+  }
+	12.11% {
+	  transform: matrix(1, 0, 0, 1, 0, -1.843);
+  }
+	16.12% {
+	  transform: matrix(1, 0, 0, 1, 0, -4.336);
+  }
+	27.23% {
+	  transform: matrix(1, 0, 0, 1, 0, -.784);
+  }
+	38.34% {
+	  transform: matrix(1, 0, 0, 1, 0, .104);
+  }
+	60.56% {
+	  transform: matrix(1, 0, 0, 1, 0, -.002);
+  }
+	82.78% {
+	  transform: matrix(1, 0, 0, 1, 0, 0);
+  }
+	to {
+	 transform: matrix(1, 0, 0, 1, 0, 0);
+  }
 
 }
 

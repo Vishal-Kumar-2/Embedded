@@ -6,6 +6,11 @@ let data = {
   liveVisiting :520,
   totalSigned :40,
 }
+const mapping = {
+  pageVisit: 'totalVisited',
+  totalSigned: 'totalSigned',
+  liveNowModal: 'liveVisiting'
+}
 //recent activities data from firebase
 let recentActivities = [
   { name: 'Lisa', city: 'California', timeStamp: '' },
@@ -62,7 +67,7 @@ Vue.component('widget', {
       customize: {
         supportedCards: ['pageVisit','recentlyVisited', 'totalSigned', 'liveNowModal'],
         appearFrom: 'bottomRight',
-        initialCard: 'pageVisit',
+        initialCard: 'totalSigned',
         theme: 'rounded',
         direction: 'bounceBottom', // or 'bounceTop' or 'bounceBottom'
         captureLinks: ['home', 'about', 'signUp'],
@@ -131,7 +136,8 @@ Vue.component('VariantModal', {
   data() {
     return {
       image: this.customize.modalHTML[this.customize.initialCard].image,
-      message: 0 + this.customize.modalHTML[this.customize.initialCard].message,
+      // TODO: Update key names to remove extra mapping variable
+      message: data[mapping[this.customize.initialCard]] + this.customize.modalHTML[this.customize.initialCard].message,
       index: 0,
       recentIndex: 0,
       supportedCards: this.customize.supportedCards,
@@ -155,13 +161,13 @@ Vue.component('VariantModal', {
         let key = this.supportedCards[this.index]
         switch (key) {
           case 'liveNowModal':
-            this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp}</small>`;
+            this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
             break;
           case 'totalSigned':
-            this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp}</small>`;
+            this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
             break;
           case 'pageVisit':
-            this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp}</small>`;
+            this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
             break;
           case 'recentlyVisited': {
             this.message = this.name + ' from ' + this.city + this.modalHTML[this.supportedCards[this.index]].message
@@ -238,7 +244,6 @@ Vue.component('VariantModal', {
 const attachEventListeners = () => new Promise((resolve, reject) => {
   //get recent data
   window.addEventListener('message', event => {
-    debugger;
     try {
       if(typeof event.data !== 'string') {
         return
@@ -248,6 +253,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
         const { totalVisited, liveVisiting, totalSigned } = eventData.value
         recentActivities = Object.values(eventData.value.recentActivities)
         data = { totalVisited, liveVisiting, totalSigned }
+        initVueComponent()
       }
     } catch(err) {
       console.log(err)
@@ -276,30 +282,24 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
         type: 'SUBMIT',
         value: submitDetails
       }
-      var iframe = document.getElementById("enkodeframe");
-      var iframeWindow = (iframe.contentWindow || iframe.contentDocument);
-      iframeWindow.postMessage(JSON.stringify(message), '*')
+      emitEvent(message)
     }, "jsonp");
   })
   resolve();  
  });
 
 const updateLiveCount = (dbRef) => new Promise((resolve, reject) => {
-  emitEvent(`${token}_page_visits`, event => {
-    message = {
-      type: 'PAGE_VISIT',
-      value: data.liveVisiting + 1,
-    }
-    targetWindow.postMessage(JSON.stringify(message), "*")
+  emitEvent({
+    type: 'PAGE_VISIT',
+    value: data.liveVisiting + 1,
   })
-
   resolve();
 });
 
-const emitEvent = (eventName, data) => {
-  JSON.stringify({ type: 'SUBMIT', value: { name: '', email: '' } })
-  // TODO: change '*' to location.origin
-  window.postMessage(data, '*')
+const emitEvent = (message) => {
+  let iframe = document.getElementById("enkodeframe");
+  let iframeWindow = (iframe.contentWindow || iframe.contentDocument);
+  iframeWindow.postMessage(JSON.stringify(message), '*')
 }
 
 const appendWidget = (token) => new Promise((resolve, reject) => {
@@ -321,7 +321,21 @@ const getQueryParam = (key = 'token') => {
   return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }
 
+
+// Executed only once
+const initVueComponent = (function() {
+  var executed = false;
+  return () => new Promise((resolve, reject) => {
+    if (executed) {
+      return resolve()
+    }
+    else {
+      executed = true;
+      appendWidget().then(resolve);  
+    }
+  });
+})();
+
 const token = getQueryParam()
-window.onload = appendWidget(token)
-                  .then(attachEventListeners)
+window.onload = attachEventListeners()
                   .then(updateLiveCount)
