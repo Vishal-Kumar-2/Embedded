@@ -236,18 +236,12 @@
 	}
 	 58.34% {
 		transform: matrix(1, 0, 0, 1, 0, -140.896);
-
 	}
-
 	 to {
 		transform: matrix(1, 0, 0, 1, 0, -150);
 
 	}
 }
-/*
-#social_proof {
-	top: -15px !important;
-} */
 
 #block, #mainEnkodeDiv {
 	position: fixed;

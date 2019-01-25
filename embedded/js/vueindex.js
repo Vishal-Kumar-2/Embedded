@@ -285,7 +285,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
       emitEvent(message)
     }, "jsonp");
   })
-  resolve();  
+  resolve();
  });
 
 const updateLiveCount = (dbRef) => new Promise((resolve, reject) => {
@@ -331,7 +331,7 @@ const initVueComponent = (function() {
     }
     else {
       executed = true;
-      appendWidget().then(resolve);  
+      appendWidget().then(resolve);
     }
   });
 })();
