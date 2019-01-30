@@ -77,32 +77,6 @@
   opacity: 1;
 }
 
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-  opacity: 0;
-}
-.slide-fade-enter-active {
-  transition: all .3s ease;
-}
-.slide-fade-leave-active {
-  transition: all .8s;
-}
-.component-fade-enter-active, .component-fade-leave-active {
-  transition: opacity .3s ease;
-}
-.component-fade-enter, .component-fade-leave-to
-/* .component-fade-leave-active below version 2.1.8 */ {
-  opacity: 0;
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-  opacity: 0;
-}
 .bounceBottom-enter-active {
 	animation: bounceBottomUp 2s linear both;
 }
@@ -138,108 +112,86 @@
 	to {
 	 transform: matrix(1, 0, 0, 1, 0, 0);
   }
-
 }
 
- .bounceBottom-leave-active {
+.bounceBottom-leave-active {
 	animation: bounceBottomDown 2s linear both;
 }
 
  @keyframes bounceBottomDown {
 	0% {
 		transform: matrix(1, 0, 0, 1, 0, 0);
-
 	}
-	 4.2% {
+	4.2% {
 		transform: matrix(1, 0, 0, 1, 0, 54.927);
-
 	}
-	 12.51% {
+	12.51% {
 		transform: matrix(1, 0, 0, 1, 0, 103.215);
-
 	}
-	 16.62% {
+	16.62% {
 		transform: matrix(1, 0, 0, 1, 0, 106.331);
-
 	}
-	 27.73% {
+	27.73% {
 		transform: matrix(1, 0, 0, 1, 0, 150.285);
-
 	}
-
-	 to {
+	to {
 		transform: matrix(1, 0, 0, 1, 0, 150);
-
 	}
-
 }
 
 .bounceTop-enter-active {
-	animation: bounceTopDown 1100 down linear both;
+	animation: bounceTopDown 2s linear both;
 }
 
  @keyframes bounceTopDown {
 	0% {
 		transform: matrix(1, 0, 0, 1, 0, -150);
-
 	}
-	 8.11% {
+	8.11% {
 		transform: matrix(1, 0, 0, 1, 0, -130.549);
-
 	}
-	 12.11% {
+	12.11% {
 		transform: matrix(1, 0, 0, 1, 0, -111.843);
-
 	}
-	 27.23% {
+	27.23% {
 		transform: matrix(1, 0, 0, 1, 0, -50.784);
-
 	}
-	 38.34% {
+	38.34% {
 		transform: matrix(1, 0, 0, 1, 0, -5.104);
-
 	}
-	 60.56% {
+	60.56% {
 		transform: matrix(1, 0, 0, 1, 0, -3.002);
-
 	}
-	 to {
+  to {
 		transform: matrix(1, 0, 0, 1, 0, 0);
 	}
 }
 
- .bounceTop-leave-active {
+.bounceTop-leave-active {
 	animation: bounceTopUp 2s linear both;
-
 }
 
  @keyframes bounceTopUp {
 	0% {
 		transform: matrix(1, 0, 0, 1, 0, 0);
-
 	}
-	 4.1% {
+	4.1% {
 		transform: matrix(1, 0, 0, 1, 0, -58.029);
-
 	}
-	 12.11% {
+	12.11% {
 		transform: matrix(1, 0, 0, 1, 0, -101.843);
-
 	}
-	 16.12% {
+	16.12% {
 		transform: matrix(1, 0, 0, 1, 0, -111.336);
-
 	}
-	 27.23% {
+	27.23% {
 		transform: matrix(1, 0, 0, 1, 0, -130.784);
-
 	}
-	 58.34% {
+	58.34% {
 		transform: matrix(1, 0, 0, 1, 0, -140.896);
 	}
-	 to {
+	to {
 		transform: matrix(1, 0, 0, 1, 0, -150);
-
 	}
 }
 

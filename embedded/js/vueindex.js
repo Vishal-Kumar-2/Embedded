@@ -3,13 +3,8 @@ const baseUrl = 'http://localhost:5000';
 //data from firebase
 let data = {
   totalVisited: 540,
-  liveVisiting :520,
-  totalSigned :40,
-}
-const mapping = {
-  pageVisit: 'totalVisited',
-  totalSigned: 'totalSigned',
-  liveNowModal: 'liveVisiting'
+  liveVisiting: 520,
+  totalSigned: 40,
 }
 //recent activities data from firebase
 let recentActivities = [
@@ -25,8 +20,8 @@ Vue.component('widget', {
   <div id='block' :style="positions[customize.appearFrom]">
   <link rel="stylesheet" type="text/css" href="css/index.css"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <transition :name="customize.direction">
-      <section id="social_proof" class="custom-social-proof"  v-show="show" :style="positions[customize.appearFrom]" >
+    <transition appear :name="customize.direction" :duration="customize.notification.transitionTime">
+      <section id="social_proof" class="custom-social-proof" v-show="show" :style="positions[customize.appearFrom]" >
         <div class="custom-notification" :style="themes[customize.theme]">
           <VariantModal :customize="customize" v-model="show" @toggle="show = !show"> </VariantModal>
           <div class="custom-close" v-on:click="show=!show"><img src='./images/close-icon.png'></div>
@@ -65,7 +60,7 @@ Vue.component('widget', {
         }
       },
       customize: {
-        supportedCards: ['pageVisit','recentlyVisited', 'totalSigned', 'liveNowModal'],
+        supportedCards: ['totalVisited','recentlyVisited', 'totalSigned', 'liveVisiting'],
         appearFrom: 'bottomRight',
         initialCard: 'totalSigned',
         theme: 'rounded',
@@ -74,28 +69,29 @@ Vue.component('widget', {
         targetLinks: ['signUp'],
         notification: {
           firstDelay: 5000,
-          duration: 3000,
-          timeGapBetweenEach: 5000,
-          transitionTime: 400
+          duration: 4000,
+          timeGapBetweenEach: 3000,
+          transitionTime: 1000
         },
         liveNowNotLoop: false, // will show only once
-        pageVisitNotLoop: false,
+        totalVisitedNotLoop: false,
         recentActivityNotLoop: false,
+        totalSignedNotLoop: false,
         modalHTML: {
-          liveNowModal: {
+          liveVisiting: {
             image: './images/image1.jpg',
             message: ` people  are visiting this page right now.`,
           },
-          pageVisit: {
+          totalVisited: {
             image: './images/image6.png',
             message: ` has visited this site.`,
           },
           totalSigned: {
-            image: './images/image5.jpg',
+            image: './images/image3.jpg',
             message: ` have signed up this page.`,
           },
           recentlyVisited: {
-            image: './images/image6.png',
+            image: './images/image7.png',
             message: ` have signed up.`,
           },
         }
@@ -136,13 +132,13 @@ Vue.component('VariantModal', {
   data() {
     return {
       image: this.customize.modalHTML[this.customize.initialCard].image,
-      // TODO: Update key names to remove extra mapping variable
-      message: data[mapping[this.customize.initialCard]] + this.customize.modalHTML[this.customize.initialCard].message,
+      message: data[this.customize.initialCard] + this.customize.modalHTML[this.customize.initialCard].message,
       index: 0,
       recentIndex: 0,
       supportedCards: this.customize.supportedCards,
       modalHTML: this.customize.modalHTML,
-      onlyOnce: true
+      onlyOnce: true,
+      timeGap: 5000
     }
   },
   mounted : function() {
@@ -154,48 +150,62 @@ Vue.component('VariantModal', {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
 
+    toggle: function(value) {
+      return new Promise(resolve => {
+        this.$emit("toggle", value)
+        resolve()
+      })
+    },
+
     hideModal: function() {
       return new Promise((resolve, reject) => {
-        this.$emit("toggle", false)
-        this.image = this.modalHTML[this.supportedCards[this.index]].image
-        let key = this.supportedCards[this.index]
-        switch (key) {
-          case 'liveNowModal':
-            this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-            break;
-          case 'totalSigned':
-            this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-            break;
-          case 'pageVisit':
-            this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-            break;
-          case 'recentlyVisited': {
-            this.message = this.name + ' from ' + this.city + this.modalHTML[this.supportedCards[this.index]].message
-            this.recentIndex = this.recentIndex + 1;
-            this.recentIndex = this.recentIndex === recentActivities.length ? 0 : this.recentIndex;
-            break
-          }
-          default:
-            break;
-        }
-        this.index = this.index + 1;
-        this.index = this.index === this.supportedCards.length ? 0 : this.index;
-
-        resolve();
+        this.toggle(false)
+          .then(() => {
+            // sleep for time so that modal hide then change its content
+            this.sleep(500)
+              .then(() => {
+                this.image = this.modalHTML[this.supportedCards[this.index]].image
+                let key = this.supportedCards[this.index]
+                switch (key) {
+                  case 'liveVisiting':
+                  this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                  break;
+                  case 'totalSigned':
+                  this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                  break;
+                  case 'totalVisited':
+                  this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                  break;
+                  case 'recentlyVisited': {
+                    this.message = this.name + ' from ' + this.city + this.modalHTML[this.supportedCards[this.index]].message
+                    this.recentIndex = this.recentIndex + 1;
+                    this.recentIndex = this.recentIndex === recentActivities.length ? 0 : this.recentIndex;
+                    break
+                  }
+                  default:
+                  break;
+                }
+                this.index = this.index + 1;
+                this.index = this.index === this.supportedCards.length ? 0 : this.index;
+                resolve();
+              })
+          })
       })
     },
 
     showModal: function() {
       new Promise((resolve, reject) => {
-        this.$emit("toggle", true)
+        this.toggle(true);
         if(this.index === (this.supportedCards.length-1) && this.onlyOnce) {
           if(this.customize.liveNowNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'liveNowModal');
-          if(this.customize.pageVisitNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'pageVisit');
+          this.supportedCards = this.supportedCards.filter(item => item !== 'liveVisiting');
+          if(this.customize.totalVisitedNotLoop)
+          this.supportedCards = this.supportedCards.filter(item => item !== 'totalVisited');
           if(this.customize.recentActivityNotLoop)
           this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
-          onlyOnce = false;
+          if(this.customize.totalSignedNotLoop)
+          this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
+          this.onlyOnce = false;
           this.index = 0;
         }
         resolve();
@@ -203,17 +213,16 @@ Vue.component('VariantModal', {
     },
 
     setModalShowPattern: function(customize) {
-      const safetyBuffer = 200;
-      console.log(this.customize)
+      const safetyBuffer = 500;
       const { timeGapBetweenEach, duration, transitionTime } = customize.notification;
-      const timeGap = timeGapBetweenEach + duration + (transitionTime * 2 ) + safetyBuffer;
+      this.timeGap = timeGapBetweenEach + duration + transitionTime + safetyBuffer;
       return new Promise((resolve, reject) => {
         setInterval(function() {
           this.hideModal()
             .then(() => this.sleep(timeGapBetweenEach))
             .then(() => this.showModal(customize))
             .then(() => this.sleep(duration))
-        }.bind(this), timeGap);
+        }.bind(this), this.timeGap);
         resolve();
       });
     }
@@ -221,22 +230,22 @@ Vue.component('VariantModal', {
 
   computed: {
     name: function() {
-      return recentActivities[this.recentIndex].name
+      return `<b>${recentActivities[this.recentIndex].name || recentActivities[this.recentIndex].lastname || 'Someone'}</b>`
     },
     city: function() {
-      return recentActivities[this.recentIndex].city
+      return `<b>${recentActivities[this.recentIndex].city}, ${recentActivities[this.recentIndex].country}</b>`
     },
     timeStamp: function() {
       return recentActivities[this.recentIndex].timeStamp
     },
     liveVisiting: function() {
-      return data.liveVisiting;
+      return `<b>${data.liveVisiting}</b>`;
     },
     totalSigned: function() {
-      return data.totalSigned;
+      return `<b>${data.totalSigned}</b>`
     },
     totalVisited: function() {
-      return data.totalVisited;
+      return `<b>${data.totalVisited}</b>`;
     }
   }
 })
@@ -264,26 +273,27 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
   submitActors = document.getElementsByTagName('form');
   let submitDetails = {}
   submitActors[0].addEventListener('submit', (event) => {
-    event.preventDefault();
     for (let i = 1; i < event.currentTarget.length; i++) {
       if(event.currentTarget[i]['name']) {
         submitDetails[event.currentTarget[i]['name']] = event.currentTarget[i]['value'];
       }
     }
     // get ip
-    $.get("http://ipinfo.io", function(response) {
-      debugger;
-      submitDetails['ip'] = response.ip
-      submitDetails['city'] = response.city
-      submitDetails['country'] = response.country
-      submitDetails['loc'] = response.loc
+    axios
+    .get("http://ipinfo.io")
+    .then(response => {
+      submitDetails['ip'] = response.data.ip
+      submitDetails['city'] = response.data.city
+      submitDetails['country'] = response.data.country
+      submitDetails['loc'] = response.data.loc
 
       message = {
         type: 'SUBMIT',
         value: submitDetails
       }
       emitEvent(message)
-    }, "jsonp");
+    })
+    .catch(error => console.log(error))
   })
   resolve();
  });
@@ -320,7 +330,6 @@ const getQueryParam = (key = 'token') => {
   var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
   return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }
-
 
 // Executed only once
 const initVueComponent = (function() {

@@ -3,14 +3,14 @@ const connectFirebase = (token) => new Promise((resolve, reject) => {
    return reject('No valid token found')
  }
  try {
-   const config = {
-     apiKey: "AIzaSyAi_KUN3O8Q7n0qKtQ74uXui_gpFclMbu0",
-     authDomain: "my-dummy-project-465dd.firebaseapp.com",
-     databaseURL: "https://my-dummy-project-465dd.firebaseio.com",
-     projectId: "my-dummy-project-465dd",
-     storageBucket: "my-dummy-project-465dd.appspot.com",
-     messagingSenderId: "900909035618"
-   };
+  const config = {
+    apiKey: "",
+    authDomain: "",
+    databaseURL: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: ""
+  };
    firebase.initializeApp(config);
    resolve(firebase.database());
  } catch (err) {
@@ -51,7 +51,7 @@ const attachEventListeners = (dbRef, token) => new Promise((resolve, reject) => 
           console.log('UPSUPPORTED EVENT TYPE: ' + eventData.type)
           break;
       }
-      
+
       if (eventData.type === 'SUBMIT') {
         const { totalVisited, liveVisiting, totalSigned } = eventData.value
         recentActivities = eventData.value.activities
