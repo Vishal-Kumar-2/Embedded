@@ -13,15 +13,17 @@ const getToken = req => BEARER_TOKEN_REGEX.exec(req.headers.authorization)[2]
 const throwAuthError = (msg, res) => Responder.operationFailed(res, new AuthenticationError(msg))
 
 export function isAuthTokenValid(req, res, next) {
-  if(!isHeaderFormatValid(req)) {
+  if (!isHeaderFormatValid(req)) {
     return throwAuthError('Authorization bearer token required', res);
   }
 
-  User.findOne({ 'session.token': getToken(req) }, user => {
-    if(!user) {
-      return throwAuthError('Invalid/expired auth token passed', res)
-    }
-    req.user = user.toObject();
-    next();
-  })  
+  User.findOne({ sessionToken: getToken(req) })
+    .then((user) => {
+      if (!user) {
+        return throwAuthError('Invalid/expired auth token passed', res)
+      }
+      req.user = user.toObject();
+      next();
+    })
+    .catch(err => throwAuthError(err, res))
 }

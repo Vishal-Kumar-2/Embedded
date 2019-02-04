@@ -11,7 +11,7 @@ export default class CampaignController {
     const campaign = new Campaign({ campaign: req.body });
     campaign.save(err => {
       if (err) return Responder.operationFailed(res, err)
-      return Responder.created(res, newCampaign)
+      return Responder.created(res, campaign)
     });
   }
 

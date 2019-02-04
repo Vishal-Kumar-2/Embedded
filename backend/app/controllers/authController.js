@@ -8,10 +8,11 @@ export default class AuthController {
     const SECRET = `PASSKEY${Date.now()}`
     const sessionToken = jwt.encode({ username }, SECRET)
     // const sessionToken = username
-    User.update({ username },
+    User.findOneAndUpdate({ username },
       { '$set': { sessionToken } },
-      { 'new': true, 'upsert': true, strict: false }
+      { 'new': true, 'upsert': true, strict: false, updated: true }
     ).then((user) => {
+      console.log(user)
       if (user) {
         Responder.success(res, user)
       } else {

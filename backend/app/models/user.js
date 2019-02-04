@@ -21,7 +21,7 @@ const UserSchema = new Schema({
       validTill: Date
     },
     profilePic: String,
-    campaigns: [{ type: Schema.Types.ObjectId, ref: 'Campaign', field: 'token' }],
+    // campaigns: [{ type: Schema.Types.ObjectId, ref: 'Campaign', field: 'token' }],
     sessionToken: { type: String, expires: '48h' }
 
   }
