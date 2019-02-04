@@ -4,16 +4,14 @@ const Schema = mongoose.Schema;
 const CampaignSchema = new Schema({
   campaign: {
     name: String,
-    userId: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    token: { type: String, unique: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: [true, 'Campaign must belong to valid user'] },
+    token: { type: String, unique: true, required: true },
     customization: {
       supportedCards: [String],
       appearFrom: { type: String, default: 'bottomLeft', enum: ['bottomLeft', 'bottomRight', 'topLeft', 'topRight'] },
       initialCard: { type: String, default: 'pageVisit', enum: ['pageVisit', 'recentlyVisited', 'totalSigned', 'liveNowModal'] },
       theme: { type: String, default: 'rounded', enum: ['boxy', 'rounded'] },
-      direction: { type: String, default: 'down', enum: ['up', 'down'] },
-      showDirection: String,
-      hideDirection: String,
+      direction: { type: String, default: 'bounceBottom', enum: ['bounceTop', 'bounceBottom'] },
       captureLinks: [String],
       targetLinks: [String],
       notification: {
@@ -23,26 +21,13 @@ const CampaignSchema = new Schema({
         transitionTime: { type: Number, default: 400 }
       },
       liveNowNotLoop: { type: Boolean, default: false },
-      pageVisitNotLoop: { type: Boolean, default: false }, // will show only once
+      pageVisitNotLoop: { type: Boolean, default: false },
       recentActivityNotLoop: { type: Boolean, default: false },
-      modalHTML: {
-        liveNowModal: {
-          image: String,
-          message: String,
-        },
-        pageVisit: {
-          image: String,
-          message: String,
-        },
-        totalSigned: {
-          image: String,
-          setMessage: String,
-        },
-        recentActivities: {
-          image: String,
-          message: String,
-        },
-      }
+      modalHTML: [{
+        image: String,
+        message: String,
+        label: { type: String, enum: ['liveNowModal', 'pageVisit', 'totalSigned', 'recentActivities'] },
+      }]
     }
   }
 });

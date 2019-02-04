@@ -1,15 +1,18 @@
 import Responder from '../../lib/expressResponder';
-import { Campaign } from '../models';
+import { Campaign, User } from '../models';
 import _ from 'lodash';
+import mongoose from 'mongoose';
 
 export default class CampaignController {
   static createCampaign(req, res) {
-    let { userId, name, token, customization } = req.body;
-    Campaign.collection.insertOne({ userId, name, token, customization })
-      .then(newCampaign => Responder.created(res, newCampaign))
-      .catch(errorOnDBOp => {
-        Responder.operationFailed(res, errorOnDBOp)
-      });
+    // req.body = { ...req.body, userId= mongoose.Types.ObjectId(req.body.userId) }
+    console.log(req.body, '=========')
+    // User.findOne({ _id: re })
+    const campaign = new Campaign({ campaign: req.body });
+    campaign.save(err => {
+      if (err) return Responder.operationFailed(res, err)
+      return Responder.created(res, newCampaign)
+    });
   }
 
   static getCampaignByToken(req, res) {
@@ -21,21 +24,19 @@ export default class CampaignController {
 
   static getAllCampaign(req, res) {
     Campaign.find()
-      .then((campaign) => {
-        Responder.success(res, campaign)
-      })
+      .then((campaigns) => Responder.success(res, campaigns))
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
 
   static deleteCampaignByToken(req, res) {
-    let token = req.query.token;
-    Campaign.findOneAndRemove({ token: null })
-      .then(back => Responder.deleted(res))
-      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+    let { token } = req.query;
+    Campaign.findOneAndRemove({ token })
+      .then((data) => Responder.deleted(data))
+      .catch((errorOnDBOp) => Responder.operationFailed(res, errorOnDBOp));
   }
 
   static updateCampaignByToken(req, res) {
-    let token = req.query.token;
+    let { token } = req.query;
     let { name, customization } = req.body;
 
     Campaign.findOneAndUpdate({ token }, {

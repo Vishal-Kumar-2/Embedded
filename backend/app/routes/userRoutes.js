@@ -5,6 +5,7 @@ const initUserRoutes = () => {
   const userRoutes = express.Router();
 
   userRoutes.get('/', UserController.getAllUser);
+  userRoutes.get('/:id', UserController.getUserById);
   userRoutes.post('/', UserController.createUser);
   userRoutes.delete('/:id', UserController.deleteUser);
   userRoutes.patch('/:id', UserController.updateUserById);

@@ -1,20 +1,30 @@
 import Responder from '../../lib/expressResponder'
-import request from '../../lib/request'
-import Express from '../../lib/express';
 import { User } from '../models';
-import mongoose from 'mongoose';
 
-const bodyParser = require("body-parser");
-
-//const OAUTH = '9c199ea13f47bfb54d06fe006587a8fb06cb22b1'
-//const query = { access_token: OAUTH }
-const query = {}
 export default class UserController {
   static createUser(req, res) {
     let { email, verified, details, accountStatus, businessPlan, profilePic } = req.body;
     User.collection.insertOne({ email, verified, details, accountStatus, businessPlan, profilePic })
       .then(newUser => Responder.created(res, newUser))
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+  }
+
+  static updateLoginToken(req, res) {
+    let { username, password } = req.body;
+    const timeStamp = Date.now
+    User.findAndUpdate({ username },
+      { '$set': { sessionToken: jwt.encode({ username, timeStamp, password, }), verified } },
+      { 'new': true, 'upsert': true, strict: false }
+    ).then((user) => {
+      if (user) {
+        Responder.success(res, user)
+      } else {
+        Responder.operationFailed(res, 'Error: ' + user)
+      }
+    }).catch((err) => {
+      console.log(err);
+      Responder.operationFailed(res, { message: err.message || err.reason })
+    })
   }
 
   static getAllUser(req, res) {
@@ -33,17 +43,14 @@ export default class UserController {
   static updateUserById(req, res) {
     let { id } = req.params
     let { email, verified } = req.body;
-    User.findByIdAndUpdate(
-      id,
+    User.findByIdAndUpdate(id,
       { '$set': { email, verified } },
       { 'new': true, 'upsert': true, strict: false }
-    ).then((docs) => {
-      if (docs) {
-        console.log(docs);
-
-        Responder.success(res, docs)
+    ).then((user) => {
+      if (user) {
+        Responder.success(res, user)
       } else {
-        console.log(docs)
+        Responder.operationFailed(res, 'Error: ' + user)
       }
     }).catch((err) => {
       console.log(err);

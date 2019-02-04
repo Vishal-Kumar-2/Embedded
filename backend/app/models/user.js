@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
   user: {
+    username: String,
+    password: String,
     id: Schema.Types.ObjectId,
     email: String,
     details: {
@@ -19,6 +21,9 @@ const UserSchema = new Schema({
       validTill: Date
     },
     profilePic: String,
+    campaigns: [{ type: Schema.Types.ObjectId, ref: 'Campaign', field: 'token' }],
+    sessionToken: { type: String, expires: '48h' }
+
   }
 });
 
