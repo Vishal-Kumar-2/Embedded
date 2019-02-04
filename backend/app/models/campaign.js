@@ -7,6 +7,10 @@ const CampaignSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: [true, 'Campaign must belong to valid user'] },
     token: { type: String, unique: true, required: true },
     customization: {
+      hotStreak: {
+        enabled: Boolean,
+        pastHours: Number
+      },
       supportedCards: [String],
       appearFrom: { type: String, default: 'bottomLeft', enum: ['bottomLeft', 'bottomRight', 'topLeft', 'topRight'] },
       initialCard: { type: String, default: 'pageVisit', enum: ['pageVisit', 'recentlyVisited', 'totalSigned', 'liveNowModal'] },

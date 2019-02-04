@@ -1,5 +1,5 @@
 import Responder from '../../lib/expressResponder';
-import { Campaign, User } from '../models';
+import { Campaign, CampaignEvent, User } from '../models';
 import _ from 'lodash';
 import mongoose from 'mongoose';
 
@@ -16,9 +16,28 @@ export default class CampaignController {
   }
 
   static getCampaignByToken(req, res) {
-    let { token, user } = req.query;
-    Campaign.findOne({ token, userId: user })
+    Campaign.findOne({ token: req.params.token })
       .then((campaign) => Responder.success(res, campaign))
+      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+  }
+    
+  static getHotStreak(req, res) {
+    let { hotstreak } = req.campaign.customization
+    if(!hotstreak.enabled) {
+      return Responder.success(res, [])
+    }
+    getSubmitCounts(req.campaign._id, hotstreak)
+      .then(count => Responder.success(res, { pastHours: hotstreak.pastHours, signups: count }))
+      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+  }
+
+  static getConversions(req, res) {
+    let { hotstreak } = req.campaign.customization
+    getSubmitCounts(req.campaign._id, hotstreak)
+      .then(count => Responder.success(res, {
+        conversionRate: (count / campaign.totalVisited) * 100,
+        pastHours: hotstreak.pastHours
+      }))
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
 
@@ -100,4 +119,9 @@ export default class CampaignController {
 
     Responder.success(res, tokens[token]);
   }
+}
+
+const getSubmitCounts = (campaignId, hotstreak) => {
+  let dateHoursAgo = new Date(Date.now() - hotstreak.pastHours * 60 * 60 * 1000);  
+  return CampaignEvent.count({ campaignId, timestamp: { $gt : dateHoursAgo } });
 }
