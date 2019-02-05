@@ -1,6 +1,7 @@
 import config from 'config';
 import * as express from './express';
 import * as mongoose from './mongoose';
+import * as cron from './cron';
 import logger from './logger';
 
 const start = () => {
