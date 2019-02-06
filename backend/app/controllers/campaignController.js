@@ -1,5 +1,6 @@
 import Responder from '../../lib/expressResponder';
-import { Campaign, CampaignEvent, User } from '../models';
+import { Campaign } from '../models';
+import { getSubmitCounts } from '../services/campaignEvent';
 import _ from 'lodash';
 import mongoose from 'mongoose';
 import { hostname } from 'os';
@@ -71,12 +72,6 @@ export default class CampaignController {
       })
   }
 }
-
-const getSubmitCounts = (campaignId, hotStreak) => {
-  let dateHoursAgo = new Date(Date.now() - hotStreak.pastHours * 60 * 60 * 1000);
-  return CampaignEvent.count({ campaignId, type: hotStreak.type, timestamp: { $gt: dateHoursAgo } });
-}
-
 // const getHotStreakCounts = (campaignId, hotStreak) => {
 //   CampaignEvent.aggregate([
 //     {}

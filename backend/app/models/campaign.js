@@ -9,7 +9,7 @@ const CampaignSchema = new Schema({
     hotStreak: {
       enabled: { type: Boolean, default: false },
       pastHours: { type: Number, default: 24 },
-      type: { type: String, default: 'conversions', enum: ['conversions', 'visits'] }, // possible values [signed, visits]
+      type: { type: String, default: 'conversions', enum: ['conversions', 'visits', 'submits'] }, // possible values [signed, visits]
       minToShow: { type: Number, default: 0 },
     },
     supportedCards: [String],

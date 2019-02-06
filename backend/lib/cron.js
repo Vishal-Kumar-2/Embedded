@@ -11,7 +11,7 @@ const startCron = () => {
   });
   HotstreakQueue.add('save_user',{} ,{
     repeat: {
-      cron: '*/20 * * * *'
+      cron: '*/20 * * * * *'
     }
   });
 }
