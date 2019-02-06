@@ -7,8 +7,7 @@ let SaveLocationImageQueue = new Queue('save_location_image_queue', config.REDIS
 
 const startCron = () => {
   HotstreakQueue.process('save_user',(job, done) => {
-    hotStreakService();
-    done();
+    hotStreakService().then(done);
   });
   HotstreakQueue.add('save_user',{} ,{
     repeat: {
