@@ -10,7 +10,7 @@ export default class AuthController {
     // const sessionToken = username
     User.findOneAndUpdate({ username },
       { '$set': { sessionToken } },
-      { 'new': true, 'upsert': true, strict: false, updated: true }
+      { 'new': true, 'upsert': true, strict: false }
     ).then((user) => {
       console.log(user)
       if (user) {

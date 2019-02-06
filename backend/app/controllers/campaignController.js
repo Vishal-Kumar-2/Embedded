@@ -2,13 +2,12 @@ import Responder from '../../lib/expressResponder';
 import { Campaign, CampaignEvent, User } from '../models';
 import _ from 'lodash';
 import mongoose from 'mongoose';
+import { hostname } from 'os';
 
 export default class CampaignController {
   static createCampaign(req, res) {
-    // req.body = { ...req.body, userId= mongoose.Types.ObjectId(req.body.userId) }
-    console.log(req.body, '=========')
-    // User.findOne({ _id: re })
-    const campaign = new Campaign({ campaign: req.body });
+    const { name, userId, token, customization } = req.body
+    const campaign = new Campaign({ name, userId, token, customization });
     campaign.save(err => {
       if (err) return Responder.operationFailed(res, err)
       return Responder.created(res, campaign)
@@ -16,27 +15,33 @@ export default class CampaignController {
   }
 
   static getCampaignByToken(req, res) {
-    Campaign.findOne({ token: req.params.token })
-      .then((campaign) => Responder.success(res, campaign))
-      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+    Campaign.findOne({ token: req.params.token.toString() }, (errorOnDBOp, campaign) => {
+      if (errorOnDBOp) Responder.operationFailed(res, errorOnDBOp)
+      Responder.success(res, campaign)
+    })
   }
-    
-  static getHotStreak(req, res) {
-    let { hotstreak } = req.campaign.customization
-    if(!hotstreak.enabled) {
+
+  static gethotStreak(req, res) {
+    let { hotStreak } = req.campaign.customization
+    if (!hotStreak.enabled) {
       return Responder.success(res, [])
     }
-    getSubmitCounts(req.campaign._id, hotstreak)
-      .then(count => Responder.success(res, { pastHours: hotstreak.pastHours, signups: count }))
+    const field = hotStreak.type;
+    getSubmitCounts(req.campaign._id, hotStreak)
+      .then(count => {
+        let message = { pastHours: hotStreak.pastHours }
+        message[hotStreak.type] = count
+        Responder.success(res, message)
+      })
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
 
   static getConversions(req, res) {
-    let { hotstreak } = req.campaign.customization
-    getSubmitCounts(req.campaign._id, hotstreak)
+    let { hotStreak } = req.campaign.customization
+    getSubmitCounts(req.campaign._id, hotStreak)
       .then(count => Responder.success(res, {
         conversionRate: (count / campaign.totalVisited) * 100,
-        pastHours: hotstreak.pastHours
+        pastHours: hotStreak.pastHours
       }))
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
@@ -48,80 +53,57 @@ export default class CampaignController {
   }
 
   static deleteCampaignByToken(req, res) {
-    let { token } = req.query;
-    Campaign.findOneAndRemove({ token })
-      .then((data) => Responder.deleted(data))
-      .catch((errorOnDBOp) => Responder.operationFailed(res, errorOnDBOp));
+    console.log(req.params.token.toString())
+    Campaign.findOneAndRemove({ token: req.params.token.toString() }, (errorOnDBOp, data) => {
+      if (errorOnDBOp) Responder.operationFailed(res, errorOnDBOp)
+      Responder.deleted(data)
+    })
   }
 
   static updateCampaignByToken(req, res) {
-    let { token } = req.query;
     let { name, customization } = req.body;
-
-    Campaign.findOneAndUpdate({ token }, {
-      $set: {
-        name, customization
-      }
-    },
-      { new: true })
-      .then((docs) => {
-        if (docs) {
-          Responder.success(res, campaign)
-        } else {
-          Responder.operationFailed(res, docs);
-        }
-      }).catch((err) => {
-        reject(err);
+    Campaign.findOneAndUpdate({ token: req.params.token.toString() },
+      { $set: { name: name, customization: customization } },
+      { new: true }, (errorOnDBOp, campaign) => {
+        if (errorOnDBOp) Responder.operationFailed(errorOnDBOp, campaign)
+        else if (campaign) Responder.success(res, campaign)
+        Responder.operationFailed(res, 'No campaign found, Invalid token');
       })
   }
-
-  static customizeCard(req, res) {
-    const token = req.query;
-
-    const tokens = {
-      'abc': {
-        supportedCards: ['pageVisit', 'recentlySigned', 'totalSigned'],
-        appearFrom: 'topRight',
-        user_id: 45,
-        initialCard: 'pageVisit',
-        modalHTML: {
-          pageVisit: {
-            image: 'http://chittagongit.com//images/timeline-icon/timeline-icon-22.jpg',
-            msg: `<b class='count'>0 </b>has visited this site. <br>`,
-          },
-          recentlySigned: {
-            image: 'https://static1.squarespace.com/static/525dcddce4b03a9509e033ab/t/526800ffe4b0ee2599668050/1382547712599/fire.png',
-            msg: `<b> Lisa from California </b>signed up recently.</br>`,
-          },
-          totalSigned: {
-            image: 'http://chittagongit.com//images/students-icon/students-icon-4.jpg',
-            msg: `<b>100 totalSigned </b> have signed up this page.</br>`,
-          }
-        }
-      },
-      'def': {
-        supportedCards: ['pageVisit', 'recentlySigned'],
-        appearFrom: 'bottomRight',
-        user_id: 45,
-        initialCard: 'pageVisit',
-        modalHTML: {
-          pageVisit: {
-            image: 'http://chittagongit.com//images/icon-for-fire/icon-for-fire-23.jpg',
-            msg: `<b class='count'> count </b>has visited this site. <br>`,
-          },
-          recentlySigned: {
-            image: 'https://static1.squarespace.com/static/525dcddce4b03a9509e033ab/t/526800ffe4b0ee2599668050/1382547712599/fire.png',
-            msg: `<b>  from city </b>signed up recently.</br>`,
-          }
-        }
-      }
-    }
-
-    Responder.success(res, tokens[token]);
-  }
 }
 
-const getSubmitCounts = (campaignId, hotstreak) => {
-  let dateHoursAgo = new Date(Date.now() - hotstreak.pastHours * 60 * 60 * 1000);  
-  return CampaignEvent.count({ campaignId, timestamp: { $gt : dateHoursAgo } });
+const getSubmitCounts = (campaignId, hotStreak) => {
+  let dateHoursAgo = new Date(Date.now() - hotStreak.pastHours * 60 * 60 * 1000);
+  return CampaignEvent.count({ campaignId, type: hotStreak.type, timestamp: { $gt: dateHoursAgo } });
 }
+
+// const getHotStreakCounts = (campaignId, hotStreak) => {
+//   CampaignEvent.aggregate([
+//     {}
+//   ])
+// }
+
+// { signups: 7, visits: 67 }
+
+// CampaignEvent.collection.insert({
+//   name: 'get hot streaks',
+//   campaignId: mongoose.Types.ObjectId('5c599c64e69b2c233c3e889b'),
+//   userId: mongoose.Types.ObjectId('5c580cee6a0a285c478e5121'),
+//   type: 'conversions',
+//   data: {
+//     city: 'Indore',
+//     country: 'India',
+//     formData: {
+//       lastName: 'Vishal123 test'
+//     },
+//     ip: '103.9.13.58',
+//     location: {
+//       lat: '20.593683',
+//       long: '78.962883',
+//       mapUrl: 'map'
+//     }
+//   },
+//   timestamp: new Date()
+// })
+
+

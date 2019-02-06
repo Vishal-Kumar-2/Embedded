@@ -1,14 +1,14 @@
 import logger from './logger';
 import _ from 'lodash';
 
-function Responder() {}
+function Responder() { }
 
 /*
  * This method sends the response to the client.
  */
 function sendResponse(res, status, body) {
-  if(!res.headersSent) {
-    if(body)
+  if (!res.headersSent) {
+    if (body)
       return res.status(status).json(body);
     return res.status(status).send();
   }
@@ -22,6 +22,7 @@ function sendResponse(res, status, body) {
  * what is the result of the incomming request
  */
 Responder.success = (res, message) => {
+  res.header('Access-Control-Allow-Origin', "*");
   message = _.isString(message) ? { message } : message;
   return sendResponse(res, 200, message);
 }
@@ -38,7 +39,7 @@ Responder.operationFailed = (res, reason) => {
   const status = reason.status;
   logger.error(reason);
   reason = reason.message || reason;
-  return sendResponse(res, status || 400, {reason});
+  return sendResponse(res, status || 400, { reason });
 }
 
 export default Responder;

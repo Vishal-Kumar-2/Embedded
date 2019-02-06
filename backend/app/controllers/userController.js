@@ -9,24 +9,6 @@ export default class UserController {
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
 
-  static updateLoginToken(req, res) {
-    let { username, password } = req.body;
-    const timeStamp = Date.now
-    User.findAndUpdate({ username },
-      { '$set': { sessionToken: jwt.encode({ username, timeStamp, password, }), verified } },
-      { 'new': true, 'upsert': true, strict: false }
-    ).then((user) => {
-      if (user) {
-        Responder.success(res, user)
-      } else {
-        Responder.operationFailed(res, 'Error: ' + user)
-      }
-    }).catch((err) => {
-      console.log(err);
-      Responder.operationFailed(res, { message: err.message || err.reason })
-    })
-  }
-
   static getAllUser(req, res) {
     User.find()
       .then((data) => Responder.success(res, data))
@@ -35,9 +17,10 @@ export default class UserController {
 
   static getUserById(req, res) {
     const { id } = req.params
-    User.findOne({ _id: id })
-      .then((data) => Responder.success(res, data))
-      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+    User.findById(id, (errorOnDBOp, data) => {
+      if (errorOnDBOp) Responder.operationFailed(res, errorOnDBOp)
+      Responder.success(res, data)
+    })
   }
 
   static updateUserById(req, res) {

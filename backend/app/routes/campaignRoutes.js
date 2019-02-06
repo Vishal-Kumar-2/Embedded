@@ -5,15 +5,15 @@ import CampaignController from '../controllers/campaignController';
 const initCampaignRoutes = () => {
   const campaignRoutes = express.Router();
 
-  campaignRoutes.get('/:token', verifyToken, CampaignController.getCampaignByToken);
-  campaignRoutes.get('/:token/hotstreak', verifyToken, CampaignController.getHotStreak);
   campaignRoutes.get('/all', CampaignController.getAllCampaign);
+  campaignRoutes.get('/:token', verifyToken, CampaignController.getCampaignByToken);
+  campaignRoutes.get('/:token/hotstreak', verifyToken, CampaignController.gethotStreak);
 
   // protected routes
   campaignRoutes.post('/', isAuthTokenValid, CampaignController.createCampaign);
-  campaignRoutes.delete('/', isAuthTokenValid, CampaignController.deleteCampaignByToken);
-  campaignRoutes.patch('/', isAuthTokenValid, CampaignController.updateCampaignByToken);
-  
+  campaignRoutes.delete('/:token', isAuthTokenValid, CampaignController.deleteCampaignByToken);
+  campaignRoutes.patch('/:token', isAuthTokenValid, CampaignController.updateCampaignByToken);
+
   // business plan routes
   campaignRoutes.get(':token/conversions', verifyToken, isBusinessPlanActive,
     CampaignController.getConversions);

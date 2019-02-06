@@ -1,18 +1,32 @@
-const baseUrl = 'http://localhost:5000';
+const baseUrl = 'http://localhost:3000';
 
 //data from firebase
 let data = {
   totalVisited: 540,
   liveVisiting: 520,
   totalSigned: 40,
+  hotstreakPastHours: 24,
+}
+
+const getQueryParam = (key = 'token') => {
+  key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
+  const match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
+  return match && decodeURIComponent(match[1].replace(/\+/g, " "));
+}
+
+const token = getQueryParam()
+const API = {
+  getCampaign: `${baseUrl}/campaign/${token}`,
+  getHotStreak: `${baseUrl}/campaign/${token}/hotstreak`
 }
 //recent activities data from firebase
 let recentActivities = [
   { name: 'Lisa', city: 'California', timeStamp: '' },
-  { name: 'Parina', city: 'Texas', timeStamp: ''  },
-  { name: 'Sirana', city: 'India' , timeStamp: '' },
+  { name: 'Parina', city: 'Texas', timeStamp: '' },
+  { name: 'Sirana', city: 'India', timeStamp: '' },
   { name: 'Linda', city: 'Cala', timeStamp: '' }
 ]
+let appComponent = null;
 
 // PARENT COMPOENENT
 Vue.component('widget', {
@@ -23,7 +37,7 @@ Vue.component('widget', {
     <transition appear :name="customize.direction" :duration="customize.notification.transitionTime">
       <section id="social_proof" class="custom-social-proof" v-show="show" :style="positions[customize.appearFrom]" >
         <div class="custom-notification" :style="themes[customize.theme]">
-          <VariantModal :customize="customize" v-model="show" @toggle="show = !show"> </VariantModal>
+          <VariantModal :customize="customize" :data="data" v-model="show" @toggle="show = !show"> </VariantModal>
           <div class="custom-close" v-on:click="show=!show"><img src='./images/close-icon.png'></div>
         </div>
       </section>
@@ -59,9 +73,10 @@ Vue.component('widget', {
           'border-radius': '10px'
         }
       },
+      data: data,
       customize: {
-        supportedCards: ['totalVisited','recentlyVisited', 'totalSigned', 'liveVisiting'],
-        appearFrom: 'bottomRight',
+        supportedCards: ['totalVisited', 'recentlyVisited', 'totalSigned', 'liveVisiting'],
+        appearFrom: 'bottomLeft',
         initialCard: 'totalSigned',
         theme: 'rounded',
         direction: 'bounceBottom', // or 'bounceTop' or 'bounceBottom'
@@ -100,15 +115,24 @@ Vue.component('widget', {
   },
 
   created() {
-    axios
-      .get(`${baseUrl}/customize?token=def`)
+    axios.get(API.getCampaign)
       .then(response => {
-        this.customize = response.data
+        console.log(response, '====================')
+        this.customize = response.data.customization
+        return axios.get(API.getHotStreak)
       })
-      .catch(error => console.log(error))
+      .then((result) => {
+        if (result && result.data) {
+          console.log(result.data)
+          // this.data.totalSigned += result.data;
+          result.data.conversion ? (this.data.totalSigned += result.data.conversion) : (this.data.totalVisited += result.data.visits)
+          this.data.hotstreakPastHours = result.data.pastHours;
+        }
+      })
+      .catch(error => console.log(error, '=============error'))
   },
   methods: {
-    sleep: function(ms) {
+    sleep: function (ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
   }
@@ -128,7 +152,7 @@ Vue.component('VariantModal', {
         <strong class="verify"><img src='./images/check-circle.png'> verified by Enkode </strong>
       </div>
     </div>`,
-  props: ['customize'],
+  props: ['customize', 'data'],
   data() {
     return {
       image: this.customize.modalHTML[this.customize.initialCard].image,
@@ -141,23 +165,23 @@ Vue.component('VariantModal', {
       timeGap: 5000
     }
   },
-  mounted : function() {
+  mounted: function () {
     this.setModalShowPattern(this.customize);
   },
 
   methods: {
-    sleep: function(ms) {
+    sleep: function (ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
 
-    toggle: function(value) {
+    toggle: function (value) {
       return new Promise(resolve => {
         this.$emit("toggle", value)
         resolve()
       })
     },
 
-    hideModal: function() {
+    hideModal: function () {
       return new Promise((resolve, reject) => {
         this.toggle(false)
           .then(() => {
@@ -168,14 +192,15 @@ Vue.component('VariantModal', {
                 let key = this.supportedCards[this.index]
                 switch (key) {
                   case 'liveVisiting':
-                  this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-                  break;
+                    this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                    break;
                   case 'totalSigned':
-                  this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-                  break;
+                    this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message +
+                      ` <small>in the past ${this.hotstreakPastHours} hours</small> `;
+                    break;
                   case 'totalVisited':
-                  this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
-                  break;
+                    this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                    break;
                   case 'recentlyVisited': {
                     this.message = this.name + ' from ' + this.city + this.modalHTML[this.supportedCards[this.index]].message
                     this.recentIndex = this.recentIndex + 1;
@@ -183,7 +208,7 @@ Vue.component('VariantModal', {
                     break
                   }
                   default:
-                  break;
+                    break;
                 }
                 this.index = this.index + 1;
                 this.index = this.index === this.supportedCards.length ? 0 : this.index;
@@ -193,18 +218,18 @@ Vue.component('VariantModal', {
       })
     },
 
-    showModal: function() {
+    showModal: function () {
       new Promise((resolve, reject) => {
         this.toggle(true);
-        if(this.index === (this.supportedCards.length-1) && this.onlyOnce) {
-          if(this.customize.liveNowNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'liveVisiting');
-          if(this.customize.totalVisitedNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'totalVisited');
-          if(this.customize.recentActivityNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
-          if(this.customize.totalSignedNotLoop)
-          this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
+        if (this.index === (this.supportedCards.length - 1) && this.onlyOnce) {
+          if (this.customize.liveNowNotLoop)
+            this.supportedCards = this.supportedCards.filter(item => item !== 'liveVisiting');
+          if (this.customize.totalVisitedNotLoop)
+            this.supportedCards = this.supportedCards.filter(item => item !== 'totalVisited');
+          if (this.customize.recentActivityNotLoop)
+            this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
+          if (this.customize.totalSignedNotLoop)
+            this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
           this.onlyOnce = false;
           this.index = 0;
         }
@@ -212,12 +237,12 @@ Vue.component('VariantModal', {
       })
     },
 
-    setModalShowPattern: function(customize) {
+    setModalShowPattern: function (customize) {
       const safetyBuffer = 500;
       const { timeGapBetweenEach, duration, transitionTime } = customize.notification;
       this.timeGap = timeGapBetweenEach + duration + transitionTime + safetyBuffer;
       return new Promise((resolve, reject) => {
-        setInterval(function() {
+        setInterval(function () {
           this.hideModal()
             .then(() => this.sleep(timeGapBetweenEach))
             .then(() => this.showModal(customize))
@@ -229,23 +254,26 @@ Vue.component('VariantModal', {
   },
 
   computed: {
-    name: function() {
+    name: function () {
       return `<b>${recentActivities[this.recentIndex].name || recentActivities[this.recentIndex].lastname || 'Someone'}</b>`
     },
-    city: function() {
+    city: function () {
       return `<b>${recentActivities[this.recentIndex].city}, ${recentActivities[this.recentIndex].country}</b>`
     },
-    timeStamp: function() {
+    timeStamp: function () {
       return recentActivities[this.recentIndex].timeStamp
     },
-    liveVisiting: function() {
-      return `<b>${data.liveVisiting}</b>`;
+    liveVisiting: function () {
+      return `<b>${this.data.liveVisiting}</b>`;
     },
-    totalSigned: function() {
-      return `<b>${data.totalSigned}</b>`
+    hotstreakPastHours: function () {
+      return `<b>${this.data.hotstreakPastHours}</b>`;
     },
-    totalVisited: function() {
-      return `<b>${data.totalVisited}</b>`;
+    totalSigned: function () {
+      return `<b>${this.data.totalSigned}</b>`
+    },
+    totalVisited: function () {
+      return `<b>${this.data.totalVisited}</b>`;
     }
   }
 })
@@ -254,7 +282,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
   //get recent data
   window.addEventListener('message', event => {
     try {
-      if(typeof event.data !== 'string') {
+      if (typeof event.data !== 'string') {
         return
       }
       let eventData = JSON.parse(event.data);
@@ -263,8 +291,9 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
         recentActivities = Object.values(eventData.value.recentActivities)
         data = { totalVisited, liveVisiting, totalSigned }
         initVueComponent()
+        appComponent && appComponent.$forceUpdate()
       }
-    } catch(err) {
+    } catch (err) {
       console.log(err)
     }
   })
@@ -274,34 +303,34 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
   let submitDetails = {}
   submitActors[0].addEventListener('submit', (event) => {
     for (let i = 1; i < event.currentTarget.length; i++) {
-      if(event.currentTarget[i]['name']) {
+      if (event.currentTarget[i]['name']) {
         submitDetails[event.currentTarget[i]['name']] = event.currentTarget[i]['value'];
       }
     }
     // get ip
     axios
-    .get("http://ipinfo.io")
-    .then(response => {
-      submitDetails['ip'] = response.data.ip
-      submitDetails['city'] = response.data.city
-      submitDetails['country'] = response.data.country
-      submitDetails['loc'] = response.data.loc
+      .get("http://ipinfo.io")
+      .then(response => {
+        submitDetails['ip'] = response.data.ip
+        submitDetails['city'] = response.data.city
+        submitDetails['country'] = response.data.country
+        submitDetails['loc'] = response.data.loc
 
-      message = {
-        type: 'SUBMIT',
-        value: submitDetails
-      }
-      emitEvent(message)
-    })
-    .catch(error => console.log(error))
+        message = {
+          type: 'SUBMIT',
+          value: submitDetails
+        }
+        emitEvent(message)
+      })
+      .catch(error => console.log(error))
   })
   resolve();
- });
+});
 
-const updateLiveCount = (dbRef) => new Promise((resolve, reject) => {
+const updateLiveCount = (increment) => new Promise((resolve, reject) => {
   emitEvent({
-    type: 'PAGE_VISIT',
-    value: data.liveVisiting + 1,
+    type: increment ? 'PAGE_VISIT' : 'PAGE_LEAVE',
+    value: data.liveVisiting,
   })
   resolve();
 });
@@ -322,17 +351,13 @@ const appendWidget = (token) => new Promise((resolve, reject) => {
                   <widget></widget>
                 </div>`,
   })
-  resolve();
+  resolve(app);
 })
 
-const getQueryParam = (key = 'token') => {
-  key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
-  var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
-  return match && decodeURIComponent(match[1].replace(/\+/g, " "));
-}
+
 
 // Executed only once
-const initVueComponent = (function() {
+const initVueComponent = (function () {
   var executed = false;
   return () => new Promise((resolve, reject) => {
     if (executed) {
@@ -340,11 +365,16 @@ const initVueComponent = (function() {
     }
     else {
       executed = true;
-      appendWidget().then(resolve);
+      appendWidget().then(app => {
+        appComponent = app
+        resolve()
+      });
     }
   });
 })();
 
-const token = getQueryParam()
-window.onload = attachEventListeners()
-                  .then(updateLiveCount)
+
+window.onload = event => attachEventListeners()
+  .then(() => updateLiveCount(true))
+
+window.onbeforeunload = event => updateLiveCount()
