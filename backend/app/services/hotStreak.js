@@ -37,13 +37,11 @@ const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
 })
 
 const setLastSignups = (campaigns) => {
-  console.log(campaigns,"ddshghjghg")
   campaigns.forEach(async(campaign) => {
-    console.log(campaign);
     const signUps = await getSubmitCounts(campaign._id,campaign.customization.hotStreak);
-    let queriedElements = firebase.database().ref(`${token.token}`).orderByKey()
-    queriedElements.once('value', itemSnapshot => {
-      console.log(itemSnapshot,"itemSnapshot")
+    let totalSignedRef = firebase.database().ref(`${campaign.token}/totalSigned`);
+    totalSignedRef.once('value', itemSnapshot => {
+      totalSignedRef.ref.set(signUps);
     })
   });
 }
