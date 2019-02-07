@@ -12,6 +12,7 @@ const CampaignSchema = new Schema({
       type: { type: String, default: 'conversions', enum: ['conversions', 'visits', 'submits'] }, // possible values [signed, visits]
       minToShow: { type: Number, default: 0 },
     },
+    showLast: { type: Number, default: 20 },
     supportedCards: [String],
     appearFrom: { type: String, default: 'bottomLeft', enum: ['bottomLeft', 'bottomRight', 'topLeft', 'topRight'] },
     initialCard: { type: String, default: 'pageVisit', enum: ['pageVisit', 'recentlyVisited', 'totalSigned', 'liveNowModal'] },

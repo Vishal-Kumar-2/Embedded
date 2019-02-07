@@ -10,7 +10,7 @@ const CampaignEventSchema = new Schema({
     city: String,
     country: String,
     formData: JSON,
-    ip: { type: String, required: true },
+    ip: { type: String },
     location: {
       lat: String,
       long: String,
