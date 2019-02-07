@@ -6,10 +6,10 @@ let HotstreakQueue = new Queue('hot_streak_queue', config.REDIS_CONFIG);
 let SaveLocationImageQueue = new Queue('save_location_image_queue', config.REDIS_CONFIG);
 
 const startCron = () => {
-  HotstreakQueue.process('recent_signups',(job, done) => {
+  HotstreakQueue.process('hotstreaks',(job, done) => {
     getHotstreaks().then(done);
   });
-  HotstreakQueue.add('recent_signups',{} ,{
+  HotstreakQueue.add('hotstreaks',{} ,{
     repeat: {
       cron: '*/20 * * * *'
     }
