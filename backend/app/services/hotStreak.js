@@ -5,21 +5,21 @@ import mongoose from 'mongoose';
 import config from 'config';
 import firebase from '../../lib/firebase';
 
-export function hotStreakSignups() {
-  const type = 'recentActivities';
-  getHotstreaks(type);
-}
+const endPoints = {
+  'submits' : 'recentActivities',
+  'visits' : 'recentVisits'
+};
 
-export function hotStreakVisits() {
-  const type = 'recentVisits';
-  getHotstreaks(type);
-}
+const totalValueEndPoints = {
+  'submits' : 'totalSigned',
+  'visits' : 'totalVisited'
+};
 
-const getHotstreaks = function(type) {
+export const getHotstreaks = () => {
   return new Promise((resolve, reject) => {
-    getCampaignTokens()
-      .then((tokens) => processFirebaseData(type, tokens))
-      .then(getCampaignHotStreak)
+    getCampaignData()
+      .then(processFirebaseData)
+      .then(getCampaignData)
       .then(setLastSignups)
       .then(resolve)
       .catch(err => {
@@ -30,17 +30,16 @@ const getHotstreaks = function(type) {
   })
 }
 
-const getCampaignTokens = () => Campaign.find({}).select({'token': 1, '_id': 1, 'userId': 1, 'customization.showLast': 1}).lean();
-const getCampaignHotStreak = () => Campaign.find({}).select({'token': 1, '_id': 1, 'customization.hotStreak': 1}).lean();
+const getCampaignData = () => Campaign.find({}).select({'token': 1, '_id': 1, 'userId': 1, 'customization.showLast': 1, 'customization.hotStreak': 1}).lean();
 
-const processFirebaseData = (type, tokens) => new Promise((resolve, reject) => {
+const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
   const concurrency  = config.firebase.concurrencyLimit;
   async.eachLimit(tokens, concurrency, (token, done) => {
+    const type = endPoints[token.customization.hotStreak.type];
     let queriedElements = firebase.database().ref(`${token.token}/${type}`).orderByKey();
-    const hotStreaktype = (type == 'recentActivities') ? 'submits' : 'visits';
     queriedElements.once('value', itemSnapshot => {
       const refData = itemSnapshot.val();
-      insertEvents(refData, token._id, token.userId, token.customization.showLast, hotStreaktype).then((updates) => {
+      insertEvents(refData, token._id, token.userId, token.customization.showLast, token.customization.hotStreak.type).then((updates) => {
         itemSnapshot.ref.set(updates);
         done();
       });
@@ -51,9 +50,9 @@ const processFirebaseData = (type, tokens) => new Promise((resolve, reject) => {
 const setLastSignups = (campaigns) => {
   campaigns.forEach(async(campaign) => {
     const count = await getSubmitCounts(campaign._id,campaign.customization.hotStreak);
-    const endPoint = (campaign.customization.hotStreak.type == 'submits') ? 'totalSigned' : 'totalVisited';
+    const endPoint = totalValueEndPoints[campaign.customization.hotStreak.type];
     let totalRef = firebase.database().ref(`${campaign.token}/${endPoint}`);
-    totalRef.once('value', (itemsnapshot) => {
+    totalRef.once('value', () => {
       totalRef.ref.set(count);
     })
   });
