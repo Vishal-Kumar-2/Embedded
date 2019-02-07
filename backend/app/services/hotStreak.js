@@ -1,6 +1,6 @@
 import { CampaignEvent } from '../models';
-import { getSubmitCounts } from './campaignEvent';
-import { getCampaignData, saveCampaign } from './campaign';
+import { getSubmitCounts, saveCampaign } from './campaignEvent';
+import { getCampaignData } from './campaign';
 import async from 'async';
 import mongoose from 'mongoose';
 import config from 'config';
