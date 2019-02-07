@@ -1,18 +1,14 @@
-import { Campaign, CampaignEvent } from '../models';
+import { CampaignEvent } from '../models';
 import { getSubmitCounts } from './campaignEvent';
+import { getCampaignData, saveCampaign } from './campaign';
 import async from 'async';
 import mongoose from 'mongoose';
 import config from 'config';
-import firebase from '../../lib/firebase';
+import { updateReference, getReference } from '../../lib/firebase';
 
 const endPoints = {
-  'submits' : 'recentActivities',
-  'visits' : 'recentVisits'
-};
-
-const totalValueEndPoints = {
-  'submits' : 'totalSigned',
-  'visits' : 'totalVisited'
+  'totalSigned' : 'recentActivities',
+  'totalVisited' : 'recentVisits'
 };
 
 export const getHotstreaks = () => {
@@ -30,31 +26,31 @@ export const getHotstreaks = () => {
   })
 }
 
-const getCampaignData = () => Campaign.find({}).select({'token': 1, '_id': 1, 'userId': 1, 'customization.showLast': 1, 'customization.hotStreak': 1}).lean();
-
 const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
   const concurrency  = config.firebase.concurrencyLimit;
   async.eachLimit(tokens, concurrency, (token, done) => {
     const type = endPoints[token.customization.hotStreak.type];
-    let queriedElements = firebase.database().ref(`${token.token}/${type}`).orderByKey();
+    let queriedElements = getReference(`${token.token}/${type}`).orderByKey();
     queriedElements.once('value', itemSnapshot => {
       const refData = itemSnapshot.val();
       insertEvents(refData, token._id, token.userId, token.customization.showLast, token.customization.hotStreak.type).then((updates) => {
-        itemSnapshot.ref.set(updates);
+        updateReference(itemSnapshot.ref, updates);
         done();
+      }).catch(err => {
+        reject(err);
       });
-    })
+    });
   }, (err) => err ? reject(err) : resolve())
 })
 
 const setLastSignups = (campaigns) => {
   campaigns.forEach(async(campaign) => {
     const count = await getSubmitCounts(campaign._id,campaign.customization.hotStreak);
-    const endPoint = totalValueEndPoints[campaign.customization.hotStreak.type];
-    let totalRef = firebase.database().ref(`${campaign.token}/${endPoint}`);
-    totalRef.once('value', () => {
-      totalRef.ref.set(count);
-    })
+    const endPoint = campaign.customization.hotStreak.type;
+    let totalRef = getReference(`${campaign.token}/${endPoint}`);
+    totalRef.once('value', (itemSnapshot) => {
+      updateReference(totalRef.ref, count);
+    });
   });
 }
 
@@ -87,20 +83,18 @@ const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => n
         },
         timestamp: refData[key].timestamp
       })
-      campaignEvent.save(err => {
-        if(err){
-          console.log(err,"ERROR WHILE SAVING EVENT")
-        } else {        
-          if(count++ < showLast){
-            updates[key] = refData[key];
-          }
-          done()
+      saveCampaign(campaignEvent).then(() => {
+        if(count++ < showLast){
+          updates[key] = refData[key];          
         }
-      });
+        done()
+      }).catch(err => {
+        reject(err);
+      }); 
     }, (err) => err ? reject(err) : resolve(updates))
   } else{
     resolve({})
   }  
 }).catch(err => {
-  console.error(err)
+  reject(err);
 })
