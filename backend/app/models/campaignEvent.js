@@ -5,7 +5,7 @@ const CampaignEventSchema = new Schema({
   name: String,
   campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign' },
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
-  type: { type: String, default: 'conversions', enum: ['conversions', 'visits', 'submits'] },
+  type: { type: String, default: 'totalSigned', enum: ['totalSigned', 'totalVisited'] },
   data: {
     city: String,
     country: String,
