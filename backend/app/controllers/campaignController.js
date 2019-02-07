@@ -27,7 +27,6 @@ export default class CampaignController {
     if (!hotStreak.enabled) {
       return Responder.success(res, [])
     }
-    const field = hotStreak.type;
     getSubmitCounts(req.campaign._id, hotStreak)
       .then(count => {
         let message = { pastHours: hotStreak.pastHours }
@@ -81,15 +80,15 @@ export default class CampaignController {
 // { signups: 7, visits: 67 }
 
 // CampaignEvent.collection.insert({
-//   name: 'get hot streaks',
+//   name: 'get streaks',
 //   campaignId: mongoose.Types.ObjectId('5c599c64e69b2c233c3e889b'),
 //   userId: mongoose.Types.ObjectId('5c580cee6a0a285c478e5121'),
-//   type: 'conversions',
+//   type: 'visits',
 //   data: {
 //     city: 'Indore',
 //     country: 'India',
 //     formData: {
-//       lastName: 'Vishal123 test'
+//       lastName: 'Vishal test'
 //     },
 //     ip: '103.9.13.58',
 //     location: {

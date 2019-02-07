@@ -32,7 +32,7 @@ const CampaignSchema = new Schema({
     modalHTML: [{
       image: String,
       message: String,
-      label: { type: String, enum: ['liveNowModal', 'pageVisit', 'totalSigned', 'recentActivities'] },
+      label: { type: String, enum: ['liveVisiting', 'totalVisited', 'totalSigned', 'recentActivities'] },
     }]
   }
 });

@@ -1,11 +1,50 @@
 const baseUrl = 'http://localhost:3000';
 
 //data from firebase
-let data = {
+let firebaseData = {
   totalVisited: 540,
   liveVisiting: 520,
   totalSigned: 40,
   hotstreakPastHours: 24,
+}
+
+let customize = {
+  supportedCards: ['totalVisited', 'recentActivities', 'totalSigned', 'liveVisiting'],
+  appearFrom: 'bottomLeft',
+  initialCard: 'totalSigned',
+  theme: 'rounded',
+  direction: 'bounceBottom', // or 'bounceTop' or 'bounceBottom'
+  captureLinks: ['home', 'about', 'signUp'],
+  targetLinks: ['signUp'],
+  notification: {
+    firstDelay: 5000,
+    duration: 4000,
+    timeGapBetweenEach: 3000,
+    transitionTime: 1000
+  },
+  showLastActivities: 20,
+  liveNowNotLoop: false, // will show only once
+  totalVisitedNotLoop: false,
+  recentActivityNotLoop: false,
+  totalSignedNotLoop: false,
+  modalHTML: {
+    liveVisiting: {
+      image: './images/image1.jpg',
+      message: ` people  are visiting this page right now.`,
+    },
+    totalVisited: {
+      image: './images/image6.png',
+      message: ` has visited this site.`,
+    },
+    totalSigned: {
+      image: './images/image3.jpg',
+      message: ` have signed up this page.`,
+    },
+    recentActivities: {
+      image: './images/image7.png',
+      message: ` have signed up.`,
+    },
+  }
 }
 
 const getQueryParam = (key = 'token') => {
@@ -21,10 +60,10 @@ const API = {
 }
 //recent activities data from firebase
 let recentActivities = [
-  { name: 'Lisa', city: 'California', timeStamp: '' },
-  { name: 'Parina', city: 'Texas', timeStamp: '' },
-  { name: 'Sirana', city: 'India', timeStamp: '' },
-  { name: 'Linda', city: 'Cala', timeStamp: '' }
+  { name: 'Lisa', city: 'California', timestamp: '' },
+  { name: 'Parina', city: 'Texas', timestamp: '' },
+  { name: 'Sirana', city: 'India', timestamp: '' },
+  { name: 'Linda', city: 'Cala', timestamp: '' }
 ]
 let appComponent = null;
 
@@ -37,7 +76,7 @@ Vue.component('widget', {
     <transition appear :name="customize.direction" :duration="customize.notification.transitionTime">
       <section id="social_proof" class="custom-social-proof" v-show="show" :style="positions[customize.appearFrom]" >
         <div class="custom-notification" :style="themes[customize.theme]">
-          <VariantModal :customize="customize" :data="data" v-model="show" @toggle="show = !show"> </VariantModal>
+          <VariantModal :customize="customize" :firebaseData="firebaseData" :recentActivities="recentActivities" v-model="show" @toggle="show = !show"> </VariantModal>
           <div class="custom-close" v-on:click="show=!show"><img src='./images/close-icon.png'></div>
         </div>
       </section>
@@ -73,63 +112,15 @@ Vue.component('widget', {
           'border-radius': '10px'
         }
       },
-      data: data,
-      customize: {
-        supportedCards: ['totalVisited', 'recentlyVisited', 'totalSigned', 'liveVisiting'],
-        appearFrom: 'bottomLeft',
-        initialCard: 'totalSigned',
-        theme: 'rounded',
-        direction: 'bounceBottom', // or 'bounceTop' or 'bounceBottom'
-        captureLinks: ['home', 'about', 'signUp'],
-        targetLinks: ['signUp'],
-        notification: {
-          firstDelay: 5000,
-          duration: 4000,
-          timeGapBetweenEach: 3000,
-          transitionTime: 1000
-        },
-        liveNowNotLoop: false, // will show only once
-        totalVisitedNotLoop: false,
-        recentActivityNotLoop: false,
-        totalSignedNotLoop: false,
-        modalHTML: {
-          liveVisiting: {
-            image: './images/image1.jpg',
-            message: ` people  are visiting this page right now.`,
-          },
-          totalVisited: {
-            image: './images/image6.png',
-            message: ` has visited this site.`,
-          },
-          totalSigned: {
-            image: './images/image3.jpg',
-            message: ` have signed up this page.`,
-          },
-          recentlyVisited: {
-            image: './images/image7.png',
-            message: ` have signed up.`,
-          },
-        }
-      },
+      firebaseData: firebaseData,
+      customize: customize,
+      recentActivities: recentActivities
     }
   },
-
-  created() {
-    axios.get(API.getCampaign)
-      .then(response => {
-        console.log(response, '====================')
-        this.customize = response.data.customization
-        return axios.get(API.getHotStreak)
-      })
-      .then((result) => {
-        if (result && result.data) {
-          console.log(result.data)
-          // this.data.totalSigned += result.data;
-          result.data.conversion ? (this.data.totalSigned += result.data.conversion) : (this.data.totalVisited += result.data.visits)
-          this.data.hotstreakPastHours = result.data.pastHours;
-        }
-      })
-      .catch(error => console.log(error, '=============error'))
+  watch: {
+    firebaseData: function () {
+      this.firebaseData = firebaseData;
+    }
   },
   methods: {
     sleep: function (ms) {
@@ -152,17 +143,28 @@ Vue.component('VariantModal', {
         <strong class="verify"><img src='./images/check-circle.png'> verified by Enkode </strong>
       </div>
     </div>`,
-  props: ['customize', 'data'],
+  props: ['customize', 'firebaseData', 'recentActivities'],
   data() {
     return {
-      image: this.customize.modalHTML[this.customize.initialCard].image,
-      message: data[this.customize.initialCard] + this.customize.modalHTML[this.customize.initialCard].message,
       index: 0,
       recentIndex: 0,
       supportedCards: this.customize.supportedCards,
       modalHTML: this.customize.modalHTML,
       onlyOnce: true,
-      timeGap: 5000
+      timeGap: 5000,
+      image: this.customize.modalHTML.find(obj => {
+        return obj.label === this.customize.initialCard
+      }).image,
+      message: this.firebaseData[this.customize.initialCard] + this.customize.modalHTML.find(obj => {
+        return obj.label === this.customize.initialCard
+      }).message,
+      totalVisited: this.firebaseData.totalVisited,
+      liveVisiting: this.firebaseData.liveVisiting,
+      totalSigned: this.firebaseData.totalSigned,
+      hotstreakPastHours: this.firebaseData.hotstreakPastHours,
+      name: this.recentActivities[0].name,
+      city: this.recentActivities[0].city,
+      timestamp: this.recentActivities[0].timestamp
     }
   },
   mounted: function () {
@@ -181,6 +183,19 @@ Vue.component('VariantModal', {
       })
     },
 
+    setFirebaseData: function () {
+      this.firebaseData = firebaseData;
+      this.liveVisiting = this.firebaseData.liveVisiting
+      this.hotstreakPastHours = this.firebaseData.hotstreakPastHours
+      this.totalSigned = this.firebaseData.totalSigned
+      this.totalVisited = this.firebaseData.totalVisited
+      this.recentActivities = recentActivities
+      this.name = this.recentActivities[this.recentIndex].name
+      this.city = this.recentActivities[this.recentIndex].city
+      this.timestamp = this.recentActivities[this.recentIndex].timestamp
+
+    },
+
     hideModal: function () {
       return new Promise((resolve, reject) => {
         this.toggle(false)
@@ -188,21 +203,26 @@ Vue.component('VariantModal', {
             // sleep for time so that modal hide then change its content
             this.sleep(500)
               .then(() => {
-                this.image = this.modalHTML[this.supportedCards[this.index]].image
+                this.setFirebaseData();
                 let key = this.supportedCards[this.index]
+                let modalIndex = this.modalHTML.find(obj => {
+                  return obj.label === key
+                })
+                this.image = modalIndex.image
                 switch (key) {
                   case 'liveVisiting':
-                    this.message = this.liveVisiting + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                    this.message = this.liveVisiting + modalIndex.message + `<small> ${this.timestamp || ''}</small>`;
                     break;
                   case 'totalSigned':
-                    this.message = this.totalSigned + this.modalHTML[this.supportedCards[this.index]].message +
-                      ` <small>in the past ${this.hotstreakPastHours} hours</small> `;
+                    this.message = this.totalSigned + modalIndex.message +
+                      ` <small>in the past ${this.hotstreakPastHours || 24} hours</small> `;
                     break;
                   case 'totalVisited':
-                    this.message = this.totalVisited + this.modalHTML[this.supportedCards[this.index]].message + `<small> ${this.timeStamp || ''}</small>`;
+                    this.message = this.totalVisited + modalIndex.message +
+                      ` <small>in the past ${this.hotstreakPastHours || 24} hours</small> `;
                     break;
-                  case 'recentlyVisited': {
-                    this.message = this.name + ' from ' + this.city + this.modalHTML[this.supportedCards[this.index]].message
+                  case 'recentActivities': {
+                    this.message = this.name + ' from ' + this.city + modalIndex.message + `<small> ${this.timestamp || ''}</small>`
                     this.recentIndex = this.recentIndex + 1;
                     this.recentIndex = this.recentIndex === recentActivities.length ? 0 : this.recentIndex;
                     break
@@ -227,9 +247,9 @@ Vue.component('VariantModal', {
           if (this.customize.totalVisitedNotLoop)
             this.supportedCards = this.supportedCards.filter(item => item !== 'totalVisited');
           if (this.customize.recentActivityNotLoop)
-            this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
+            this.supportedCards = this.supportedCards.filter(item => item !== 'recentActivities');
           if (this.customize.totalSignedNotLoop)
-            this.supportedCards = this.supportedCards.filter(item => item !== 'recentlyVisited');
+            this.supportedCards = this.supportedCards.filter(item => item !== 'totalSigned');
           this.onlyOnce = false;
           this.index = 0;
         }
@@ -254,27 +274,28 @@ Vue.component('VariantModal', {
   },
 
   computed: {
-    name: function () {
-      return `<b>${recentActivities[this.recentIndex].name || recentActivities[this.recentIndex].lastname || 'Someone'}</b>`
-    },
-    city: function () {
-      return `<b>${recentActivities[this.recentIndex].city}, ${recentActivities[this.recentIndex].country}</b>`
-    },
-    timeStamp: function () {
-      return recentActivities[this.recentIndex].timeStamp
-    },
-    liveVisiting: function () {
-      return `<b>${this.data.liveVisiting}</b>`;
-    },
-    hotstreakPastHours: function () {
-      return `<b>${this.data.hotstreakPastHours}</b>`;
-    },
-    totalSigned: function () {
-      return `<b>${this.data.totalSigned}</b>`
-    },
-    totalVisited: function () {
-      return `<b>${this.data.totalVisited}</b>`;
-    }
+
+    // name: function () {
+    //   return `<b>${recentActivities[this.recentIndex].name || recentActivities[this.recentIndex].lastname || 'Someone'}</b>`
+    // },
+    // city: function () {
+    //   return `<b>${recentActivities[this.recentIndex].city}, ${recentActivities[this.recentIndex].country}</b>`
+    // },
+    // timestamp: function () {
+    //   return recentActivities[this.recentIndex].timestamp
+    // },
+    // liveVisiting: function () {
+    //   return `<b>${this.firebaseData.liveVisiting}</b>`;
+    // },
+    // hotstreakPastHours: function () {
+    //   return `<b>${this.firebaseData.hotstreakPastHours}</b>`;
+    // },
+    // totalSigned: function () {
+    //   return `<b>${this.firebaseData.totalSigned}</b>`
+    // },
+    // totalVisited: function () {
+    //   return `<b>${this.firebaseData.totalVisited}</b>`;
+    // }
   }
 })
 
@@ -289,7 +310,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
       if (eventData.type === 'CUSTOMIZABLE_PARAMS') {
         const { totalVisited, liveVisiting, totalSigned } = eventData.value
         recentActivities = Object.values(eventData.value.recentActivities)
-        data = { totalVisited, liveVisiting, totalSigned }
+        firebaseData = { totalVisited, liveVisiting, totalSigned }
         initVueComponent()
         appComponent && appComponent.$forceUpdate()
       }
@@ -330,7 +351,15 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
 const updateLiveCount = (increment) => new Promise((resolve, reject) => {
   emitEvent({
     type: increment ? 'PAGE_VISIT' : 'PAGE_LEAVE',
-    value: data.liveVisiting,
+    value: firebaseData.liveVisiting,
+  })
+  resolve();
+});
+
+const updateVisitTime = (increment) => new Promise((resolve, reject) => {
+  emitEvent({
+    type: 'VISIT_TIME',
+    value: { timestamp: new Date() },
   })
   resolve();
 });
@@ -354,8 +383,6 @@ const appendWidget = (token) => new Promise((resolve, reject) => {
   resolve(app);
 })
 
-
-
 // Executed only once
 const initVueComponent = (function () {
   var executed = false;
@@ -365,10 +392,16 @@ const initVueComponent = (function () {
     }
     else {
       executed = true;
-      appendWidget().then(app => {
-        appComponent = app
-        resolve()
-      });
+      axios.get(API.getCampaign)
+        .then(response => {
+          customize = response.data.customization
+          return appendWidget();
+        })
+        .then(app => {
+          appComponent = app
+          resolve()
+        })
+        .catch(error => console.log(error))
     }
   });
 })();
@@ -376,5 +409,6 @@ const initVueComponent = (function () {
 
 window.onload = event => attachEventListeners()
   .then(() => updateLiveCount(true))
+  .then(() => updateVisitTime(true))
 
 window.onbeforeunload = event => updateLiveCount()
