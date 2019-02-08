@@ -1,12 +1,23 @@
 import Responder from '../../lib/expressResponder'
 import { User } from '../models';
+import { createUser, updateUser } from '../services/user';
+import { generateToken } from '../../lib/jwt';
 
 export default class UserController {
-  static createUser(req, res) {
-    let { email, verified, details, accountStatus, businessPlan, profilePic } = req.body;
-    User.collection.insertOne({ email, verified, details, accountStatus, businessPlan, profilePic })
-      .then(newUser => Responder.created(res, newUser))
-      .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
+
+  static signUp(req, res) {
+    let { email, verified, details, accountStatus, businessPlan, profilePic, username } = req.body;
+    createUser({ email, verified, details, accountStatus, businessPlan, profilePic, username })
+    .then((data) => {
+      const createdUser = data.ops[0];
+      const token = generateToken(createdUser.username);
+      updateUser(createdUser._id, { "sessionToken" : token })
+      .then(Responder.success(res,{ "token" : token }))
+    })
+    .catch(err => {
+      console.log("Error In User SignUp",err);
+      Responder.operationFailed(res, err);
+    })
   }
 
   static getAllUser(req, res) {

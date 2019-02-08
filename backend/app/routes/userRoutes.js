@@ -6,7 +6,7 @@ const initUserRoutes = () => {
 
   userRoutes.get('/', UserController.getAllUser);
   userRoutes.get('/:id', UserController.getUserById);
-  userRoutes.post('/', UserController.createUser);
+  userRoutes.post('/', UserController.signUp);
   userRoutes.delete('/:id', UserController.deleteUser);
   userRoutes.patch('/:id', UserController.updateUserById);
 
