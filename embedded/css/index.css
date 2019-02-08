@@ -29,6 +29,7 @@
   width: 60px;
   overflow: hidden;
   padding-right: 5px;
+  border-radius: 50%;
 }
 .custom-social-proof .custom-notification .custom-notification-container .custom-notification-content-wrapper {
   margin: 0;
