@@ -7,6 +7,7 @@ const CampaignEventSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
   type: { type: String, default: 'totalSigned', enum: ['totalSigned', 'totalVisited'] },
   data: {
+    dataFireBaseId: { type: String, unique: true, required: true },
     city: String,
     country: String,
     formData: JSON,

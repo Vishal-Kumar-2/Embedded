@@ -1,4 +1,3 @@
-import { CampaignEvent } from '../models';
 import { getSubmitCounts, saveCampaign } from './campaignEvent';
 import { getCampaignData } from './campaign';
 import async from 'async';
@@ -48,7 +47,7 @@ const setLastSignups = (campaigns) => {
     const count = await getSubmitCounts(campaign._id,campaign.customization.hotStreak);
     const endPoint = campaign.customization.hotStreak.type;
     let totalRef = getReference(`${campaign.token}/${endPoint}`);
-    totalRef.once('value', (itemSnapshot) => {
+    totalRef.once('value', () => {
       updateReference(totalRef.ref, count);
     });
   });
@@ -62,34 +61,44 @@ const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => n
     let updates = {}
 
     async.eachLimit(keys, concurrency, (key, done) => {
-      let locationArr = (refData[key].loc) ? refData[key].loc.split(",") : [];
-      const campaignEvent = new CampaignEvent({
-        name: 'hot streaks',
+      const refDataVal = refData[key];
+      let locationArr = (refDataVal.loc) ? refDataVal.loc.split(",") : [];
+      const campaignEvent = {
+        name: 'hot streaks',        
         campaignId: mongoose.Types.ObjectId(campaignId),
         userId: mongoose.Types.ObjectId(userId),
         type: hotStreaktype,
         data: {
-          city: refData[key].city,
-          country: refData[key].country,
+          dataFireBaseId: key,
+          city: refDataVal.city,
+          country: refDataVal.country,
           formData: {
-            lastName: refData[key].lastName
+            lastName: refDataVal.lastName
           },
-          ip: refData[key].ip,
+          ip: refDataVal.ip,
           location: {
-            lat: (locationArr[0]) ? (locationArr[0]) : '',
-            long: (locationArr[1]) ? (locationArr[1]) : '',
+            lat: locationArr[0] || '',
+            long: locationArr[1] || '',
             mapUrl: 'map'
           }
         },
-        timestamp: refData[key].timestamp
-      })
+        timestamp: refDataVal.timestamp
+      };
       saveCampaign(campaignEvent).then(() => {
         if(count++ < showLast){
-          updates[key] = refData[key];          
+          updates[key] = refDataVal;          
         }
         done()
       }).catch(err => {
-        reject(err);
+        if(err.name =='MongoError' && err.code === 11000) {
+          console.log("Duplicate Storage In DB",err)
+          if(count++ < showLast){
+            updates[key] = refDataVal;          
+          }
+          done()
+        } else{
+          reject(err);
+        }
       }); 
     }, (err) => err ? reject(err) : resolve(updates))
   } else{
