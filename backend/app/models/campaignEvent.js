@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
-const CampaignEventSchema = new Schema({
+export const CampaignEventSchema = new Schema({
   name: String,
   campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign' },
   userId: { type: Schema.Types.ObjectId, ref: 'User' },

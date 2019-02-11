@@ -15,3 +15,10 @@ export const saveCampaign = (campaignEventData) => new Promise((resolve, reject)
     }
   });
 });
+
+export const getEventsBefore = (campaignId, hotStreak, options) => {
+  let timeAgo = new Date(Date.now() - hotStreak.pastHours * 60 * 60 * 1000);
+  return CampaignEvent.find({ campaignId, type: hotStreak.type, timestamp: { $lt: timeAgo } }).skip(options.skip).limit(options.limit).lean();
+}
+
+export const deleteEvents = (eventIds) => CampaignEvent.deleteMany({ _id: { $in: eventIds }});
