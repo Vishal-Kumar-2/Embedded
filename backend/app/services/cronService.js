@@ -7,18 +7,17 @@ import _ from 'lodash';
 
 export const removeGarbageData = () => {
   getCampaignData()
-  .then(getGarbageForCampaigns)
-  // .then()
+  .then(setLegacyCampaignEvent)
   .catch((err) => {
     console.log(err,"ERROR WHILE RUNNING GARBAGE COLLECTOR");
   })
 }
 
-const getGarbageForCampaigns = (tokens) => {
+const setLegacyCampaignEvent = (tokens) => {
   const concurrency = config.firebase.concurrencyLimit;  
 
   async.eachLimit(tokens, concurrency, (token, done) => {
-    let options = { skip: 0, limit: 2};
+    let options = { skip: 0, limit: 100};
     let eventsLength = 0;
     
     async.whilst(
@@ -28,13 +27,9 @@ const getGarbageForCampaigns = (tokens) => {
         eventsLength = campaignEvents.length;
         if(eventsLength){
           options.skip += eventsLength;
-          insertLegacyCampaignEvents(campaignEvents).then(() => {
-            const eventIds = _.map(campaignEvents, '_id');
-            deleteEvents(eventIds);
-          })
-          .catch((err) => {
-            throw err;
-          })
+          await insertLegacyCampaignEvents(campaignEvents)
+          const eventIds = _.map(campaignEvents, '_id');
+          await deleteEvents(eventIds);
         }
       },
       (error) => {
