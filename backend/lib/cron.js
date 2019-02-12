@@ -1,5 +1,6 @@
 import config from 'config';
 import Queue from 'bull';
+import logger from './logger';
 import { getHotstreaks } from '../app/services/hotStreak';
 import { removeGarbageData } from '../app/services/cronService';
 
@@ -9,13 +10,15 @@ let LegacyCollectionQueue = new Queue('legacy_queue', config.REDIS_CONFIG);
 const startCron = () => {
   HotstreakQueue.process('hotstreaks',(job, done) => {
     getHotstreaks().then(done).catch(err => {
-      console.error(err)
+      logger.error(err);
     })
+    logger.info('HotStreak Cron Started');
   });
   LegacyCollectionQueue.process('garbage_collection',(job, done) => {
     removeGarbageData().then(done).catch(err => {
-      console.error(err)
+      logger.error(err);
     })
+    logger.info('Legacy Cron Started');
   });
   HotstreakQueue.add('hotstreaks',{} ,{
     repeat: {

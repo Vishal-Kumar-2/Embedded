@@ -3,6 +3,7 @@ import { getCampaignData } from './campaign';
 import async from 'async';
 import mongoose from 'mongoose';
 import config from 'config';
+import logger from './logger';
 import { updateReference, getReference } from '../../lib/firebase';
 
 const endPoints = {
@@ -18,8 +19,8 @@ export const getHotstreaks = () => {
       .then(setLastSignups)
       .then(resolve)
       .catch(err => {
-        console.error('HOT STREAK CRON: Error while processing Firebase data')
-        console.error(err)
+        logger.error('HOT STREAK CRON: Error while processing Firebase data');
+        logger.error(err);
         reject(err)
       })
   })
@@ -33,7 +34,9 @@ const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
     queriedElements.once('value', itemSnapshot => {
       const refData = itemSnapshot.val();
       insertEvents(refData, token._id, token.userId, token.customization.showLast, token.customization.hotStreak.type).then((updates) => {
+        logger.info('Inserted CampaignEvents Into Database');
         updateReference(itemSnapshot.ref, updates);
+        logger.info('Updated FireBase DataBase');
         done();
       }).catch(err => {
         reject(err);
@@ -49,6 +52,7 @@ const setLastSignups = (campaigns) => {
     let totalRef = getReference(`${campaign.token}/${endPoint}`);
     totalRef.once('value', () => {
       updateReference(totalRef.ref, count);
+      logger.info('Set Updated Value In FireBase');
     });
   });
 }
@@ -90,10 +94,11 @@ const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => n
         }
         done()
       }).catch(err => {
-        if (err.name == 'MongoError' && err.code === 11000) {
-          console.log("Duplicate Storage In DB", err)
-          if (count++ < showLast) {
-            updates[key] = refDataVal;
+        if(err.name =='MongoError' && err.code === 11000) {
+          logger.error("Duplicate Storage In DB");
+          logger.error(err);
+          if(count++ < showLast){
+            updates[key] = refDataVal;          
           }
           done()
         } else {

@@ -9,7 +9,7 @@ export const removeGarbageData = () => {
   getCampaignData()
   .then(setLegacyCampaignEvent)
   .catch((err) => {
-    console.log(err,"ERROR WHILE RUNNING GARBAGE COLLECTOR");
+    throw err;
   })
 }
 
@@ -27,9 +27,11 @@ const setLegacyCampaignEvent = (tokens) => {
         eventsLength = campaignEvents.length;
         if(eventsLength){
           options.skip += eventsLength;
-          await insertLegacyCampaignEvents(campaignEvents)
+          await insertLegacyCampaignEvents(campaignEvents);
+          logger.info('Inserted CampaignEvents In Legacy Collection For Campaign : ' + token._id);
           const eventIds = _.map(campaignEvents, '_id');
           await deleteEvents(eventIds);
+          logger.info('Removed Garbage From CampaignEvents Collection: ' + token._id);
         }
       },
       (error) => {
@@ -44,7 +46,7 @@ const setLegacyCampaignEvent = (tokens) => {
     
   }, (err) => {
     if(err){
-      throw 'Error While Fetching Campaign Events';
+      throw err;
     }
   })
 }
