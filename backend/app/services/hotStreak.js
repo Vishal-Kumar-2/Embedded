@@ -6,8 +6,8 @@ import config from 'config';
 import { updateReference, getReference } from '../../lib/firebase';
 
 const endPoints = {
-  'totalSigned' : 'recentActivities',
-  'totalVisited' : 'recentVisits'
+  'totalSigned': 'recentActivities',
+  'totalVisited': 'recentVisits'
 };
 
 export const getHotstreaks = () => {
@@ -26,7 +26,7 @@ export const getHotstreaks = () => {
 }
 
 const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
-  const concurrency  = config.firebase.concurrencyLimit;
+  const concurrency = config.firebase.concurrencyLimit;
   async.eachLimit(tokens, concurrency, (token, done) => {
     const type = endPoints[token.customization.hotStreak.type];
     let queriedElements = getReference(`${token.token}/${type}`).orderByKey();
@@ -43,8 +43,8 @@ const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
 })
 
 const setLastSignups = (campaigns) => {
-  campaigns.forEach(async(campaign) => {
-    const count = await getSubmitCounts(campaign._id,campaign.customization.hotStreak);
+  campaigns.forEach(async (campaign) => {
+    const count = await getSubmitCounts(campaign._id, campaign.customization.hotStreak);
     const endPoint = campaign.customization.hotStreak.type;
     let totalRef = getReference(`${campaign.token}/${endPoint}`);
     totalRef.once('value', () => {
@@ -54,8 +54,8 @@ const setLastSignups = (campaigns) => {
 }
 
 const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => new Promise((resolve, reject) => {
-  const concurrency  = config.firebase.concurrencyLimit;
-  if(refData){
+  const concurrency = config.firebase.concurrencyLimit;
+  if (refData) {
     const keys = Object.keys(refData);
     let count = 0;
     let updates = {}
@@ -64,7 +64,7 @@ const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => n
       const refDataVal = refData[key];
       let locationArr = (refDataVal.loc) ? refDataVal.loc.split(",") : [];
       const campaignEvent = {
-        name: 'hot streaks',        
+        name: 'hot streaks',
         campaignId: mongoose.Types.ObjectId(campaignId),
         userId: mongoose.Types.ObjectId(userId),
         type: hotStreaktype,
@@ -79,31 +79,31 @@ const insertEvents = (refData, campaignId, userId, showLast, hotStreaktype) => n
           location: {
             lat: locationArr[0] || '',
             long: locationArr[1] || '',
-            mapUrl: 'map'
+            mapUrl: refDataVal.mapUrl
           }
         },
         timestamp: refDataVal.timestamp
       };
       saveCampaign(campaignEvent).then(() => {
-        if(count++ < showLast){
-          updates[key] = refDataVal;          
+        if (count++ < showLast) {
+          updates[key] = refDataVal;
         }
         done()
       }).catch(err => {
-        if(err.name =='MongoError' && err.code === 11000) {
-          console.log("Duplicate Storage In DB",err)
-          if(count++ < showLast){
-            updates[key] = refDataVal;          
+        if (err.name == 'MongoError' && err.code === 11000) {
+          console.log("Duplicate Storage In DB", err)
+          if (count++ < showLast) {
+            updates[key] = refDataVal;
           }
           done()
-        } else{
+        } else {
           reject(err);
         }
-      }); 
+      });
     }, (err) => err ? reject(err) : resolve(updates))
-  } else{
+  } else {
     resolve({})
-  }  
+  }
 }).catch(err => {
   reject(err);
 })

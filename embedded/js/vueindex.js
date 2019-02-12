@@ -104,9 +104,9 @@ Vue.component('widget', {
   <link rel="stylesheet" type="text/css" href="css/index.css"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <transition appear :name="customize.direction" :duration="customize.notification.transitionTime">
-      <section id="social_proof" class="custom-social-proof" v-show="show" :style="positions[customize.appearFrom]" >
+      <section id="social_proof" class="custom-social-proof" v-show="show"  v-if="manyModal" :style="positions[customize.appearFrom]">
         <div class="custom-notification" :style="themes[customize.theme]">
-          <VariantModal :customize="customize" :firebaseDataProp="firebaseDataProp" :recentActivitiesProp="recentActivitiesProp" v-model="show" @toggle="show = !show"> </VariantModal>
+          <VariantModal :customize="customize" :firebaseDataProp="firebaseDataProp" :recentActivitiesProp="recentActivitiesProp" @manyModal="manyModal =false" v-model="show" @toggle="show = !show"> </VariantModal>
           <div class="custom-close" v-on:click="show=!show"><img src='./images/close-icon.png'></div>
         </div>
       </section>
@@ -116,6 +116,7 @@ Vue.component('widget', {
   data() {
     return {
       show: true,
+      manyModal: true,
       themes: themes,
       customize: customize,
       positions: positions,
@@ -146,6 +147,7 @@ Vue.component('VariantModal', {
       recentIndex: 0,
       name: '',
       city: '',
+      country: '',
       timestamp: '',
       timeGap: 5000,
       modalHTML: this.customize.modalHTML,
@@ -175,11 +177,6 @@ Vue.component('VariantModal', {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
 
-    getMap: function (loc) {
-      let mapURL = `https://maps.googleapis.com/maps/api/staticmap?key=${mapKey}&color=gray&zoom=6&size=100x100&style=feature:landscape%7Celement:geometry%7Cvisibility:on&center=${loc}`
-      this.image = mapURL;
-    },
-
     toggle: function (value) {
       return new Promise(resolve => {
         this.$emit("toggle", value);
@@ -206,12 +203,14 @@ Vue.component('VariantModal', {
         this.firebaseData.totalVisited >= this.customize.hotStreak.minToShow ? (this.totalVisited = this.firebaseData.totalVisited) : this.manageIndex();;
       this.recentActivities = recentActivities || '';
       if (this.recentActivities.length) {
+        this.image = this.recentActivities[this.recentIndex].mapUrl;
         this.name = this.recentActivities[this.recentIndex].name || this.recentActivities[this.recentIndex].firstname || this.recentActivities[this.recentIndex].lastname || '';
         this.city = this.recentActivities[this.recentIndex].city || '';
+        this.country = this.recentActivities[this.recentIndex].country || '';
         this.timestamp = this.recentActivities[this.recentIndex].timestamp;
       } else if (this.supportedCards[this.index] === 'recentActivities') {
         this.manageIndex();
-        if (this.supportedCards.length === 1) this.toggle(false)
+        if (this.supportedCards.length === 1) this.$emit("manyModal", false);
       }
     },
 
@@ -265,7 +264,6 @@ Vue.component('VariantModal', {
                        <small>in the past ${this.hotstreakPastHours || 24} hours</small> `;
                     break;
                   case 'recentActivities': {
-                    this.getMap(this.recentActivities[this.recentIndex].loc)
                     this.message = `<b>${this.name || 'Someone'} from ${this.city || ''}</b></br>${modalIndex.message}
                        <small>in the past ${this.timeSince(this.timestamp) || 24}</small> `
                     this.recentIndex = this.recentIndex + 1;
@@ -352,8 +350,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
       }
     }
     // get ip
-    axios
-      .get("http://ipinfo.io")
+    axios.get("http://ipinfo.io")
       .then(response => {
         submitDetails['ip'] = response.data.ip;
         submitDetails['city'] = response.data.city;
@@ -416,7 +413,7 @@ const initVueComponent = (function () {
       executed = true;
       axios.get(API.getCampaign)
         .then(response => {
-          customize = response.data.customization || customize;
+          customize = response.data.customization;
           return appendWidget();
         })
         .catch(error => console.log(error));
