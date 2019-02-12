@@ -15,7 +15,6 @@ export const removeGarbageData = () => {
 
 const setLegacyCampaignEvent = (tokens) => {
   const concurrency = config.firebase.concurrencyLimit;  
-
   async.eachLimit(tokens, concurrency, (token, done) => {
     let options = { skip: 0, limit: 100};
     let eventsLength = 0;
@@ -23,13 +22,21 @@ const setLegacyCampaignEvent = (tokens) => {
     async.whilst(
       () => options.skip == 0 || eventsLength > 0,
       async () => {
+
+        // Get All CampaignEvents Before Campaign HotStreak Past Hours
         const campaignEvents = await getEventsBefore(token._id, token.customization.hotStreak, options);
+
         eventsLength = campaignEvents.length;
         if(eventsLength){
           options.skip += eventsLength;
+
+          // Insert In Legacy Campaign Event Collection Before Deleting
           await insertLegacyCampaignEvents(campaignEvents);
           logger.info('Inserted CampaignEvents In Legacy Collection For Campaign : ' + token._id);
+
           const eventIds = _.map(campaignEvents, '_id');
+
+          // Delete From Campaign Event Collection
           await deleteEvents(eventIds);
           logger.info('Removed Garbage From CampaignEvents Collection: ' + token._id);
         }

@@ -30,12 +30,19 @@ const processFirebaseData = (tokens) => new Promise((resolve, reject) => {
   const concurrency = config.firebase.concurrencyLimit;
   async.eachLimit(tokens, concurrency, (token, done) => {
     const type = endPoints[token.customization.hotStreak.type];
+
+    // Get Campaign Recent Activities Reference
     let queriedElements = getReference(`${token.token}/${type}`).orderByKey();
+
     queriedElements.once('value', itemSnapshot => {
       const refData = itemSnapshot.val();
+
+      // Insert Recent SignUps Or Visits Into Campaign Event Collection 
       insertEvents(refData, token._id, token.userId, token.customization.showLast, token.customization.hotStreak.type).then((updates) => {
         logger.info('Inserted CampaignEvents Into Database');
         updateReference(itemSnapshot.ref, updates);
+
+        //Remove Unnecessary Data From FireBase
         logger.info('Updated FireBase DataBase');
         done();
       }).catch(err => {
@@ -51,6 +58,8 @@ const setLastSignups = (campaigns) => {
     const endPoint = campaign.customization.hotStreak.type;
     let totalRef = getReference(`${campaign.token}/${endPoint}`);
     totalRef.once('value', () => {
+
+      // Update TotalSignUps Or TotalVisits On FireBase
       updateReference(totalRef.ref, count);
       logger.info('Set Updated Value In FireBase');
     });
