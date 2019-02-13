@@ -14,7 +14,7 @@ const UserSchema = new Schema({
   },
   locale: String,
   accountStatus: String,
-  verified: Boolean,
+  verified: { type: Boolean , default : false },
   businessPlan: {
     active: Boolean,
     validTill: Date
