@@ -35,9 +35,9 @@ export default class UserController {
 
   static updateUserById(req, res) {
     let { id } = req.params
-    let { email, verified } = req.body;
+    let updateData = req.body;
     User.findByIdAndUpdate(id,
-      { '$set': { email, verified } },
+      { '$set': updateData },
       { 'new': true, 'upsert': true, strict: false }
     ).then((user) => {
       if (user) {
@@ -54,7 +54,7 @@ export default class UserController {
   static deleteUser(req, res) {
     let { id } = req.params;
     User.findOneAndRemove({ _id: id })
-      .then(res => Responder.deleted(res))
+      .then(() => Responder.deleted(res))
       .catch(errorOnDBOp => Responder.operationFailed(res, errorOnDBOp));
   }
 }

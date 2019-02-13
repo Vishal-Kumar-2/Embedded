@@ -2,8 +2,6 @@ import Responder from '../../lib/expressResponder';
 import { Campaign } from '../models';
 import { getSubmitCounts } from '../services/campaignEvent';
 import _ from 'lodash';
-import mongoose from 'mongoose';
-import { hostname } from 'os';
 
 export default class CampaignController {
   static createCampaign(req, res) {
@@ -54,9 +52,9 @@ export default class CampaignController {
 
   static deleteCampaignByToken(req, res) {
     console.log(req.params.token.toString())
-    Campaign.findOneAndRemove({ token: req.params.token.toString() }, (errorOnDBOp, data) => {
+    Campaign.findOneAndRemove({ token: req.params.token.toString() }, (errorOnDBOp) => {
       if (errorOnDBOp) Responder.operationFailed(res, errorOnDBOp)
-      Responder.deleted(data)
+      Responder.deleted(res)
     })
   }
 
