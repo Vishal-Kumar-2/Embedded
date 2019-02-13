@@ -8,7 +8,7 @@ export default class UserController {
   static signUp(req, res) {
     createUser(req.body)
     .then((data) => {
-      const createdUser = data.ops[0];
+      const createdUser = data;
       const token = generateToken(createdUser.username);
       updateUser(createdUser._id, { "sessionToken" : token })
       .then(Responder.success(res,{ "token" : token }))
