@@ -5,9 +5,12 @@ export const createUser = (userData) =>  {
   return user.save();
 }
 
-export const updateUser = (_id, updateData) => 
-  User.findOneAndUpdate({ _id },
+export const updateUser = (findBy, updateData) => 
+  User.findOneAndUpdate(findBy,
     { '$set': updateData },
     { 'new': true, 'upsert': true, strict: false }
   );
+
+export const findUser = (findBy) => User.find(findBy).lean();
+    
 

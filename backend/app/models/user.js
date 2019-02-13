@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 let Schema = mongoose.Schema;
-const SALT_WORK_FACTOR = 10;
+import { createHash } from '../../lib/bcrypt';
 
 const userSchema = new Schema({
   username: { type: String , required : true },
@@ -25,20 +24,11 @@ const userSchema = new Schema({
   sessionToken: { type: String, expires: '48h' }
 });
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', async function() {
   const user = this;
-  if (!user.isModified('password')) return next();
-
-  bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
-      if(err) return next(err);
-
-      bcrypt.hash(user.password, salt, (err, hash) => {
-          if(err) return next(err);
-
-          user.password = hash;
-          next();
-      });
-  });
+  if (!user.isModified('password')) return;
+  const hash = await createHash(user.password);
+  user.password = hash;
 });
 
 export default mongoose.model('User', userSchema);

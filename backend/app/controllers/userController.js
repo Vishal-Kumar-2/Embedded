@@ -10,7 +10,7 @@ export default class UserController {
     .then((data) => {
       const createdUser = data;
       const token = generateToken(createdUser.username);
-      updateUser(createdUser._id, { "sessionToken" : token })
+      updateUser({ _id : createdUser._id }, { "sessionToken" : token })
       .then(Responder.success(res,{ "token" : token }))
     })
     .catch(err => {
