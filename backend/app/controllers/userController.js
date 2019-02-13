@@ -6,8 +6,7 @@ import { generateToken } from '../../lib/jwt';
 export default class UserController {
 
   static signUp(req, res) {
-    let { email, verified, details, accountStatus, businessPlan, profilePic, username } = req.body;
-    createUser({ email, verified, details, accountStatus, businessPlan, profilePic, username })
+    createUser(req.body)
     .then((data) => {
       const createdUser = data.ops[0];
       const token = generateToken(createdUser.username);

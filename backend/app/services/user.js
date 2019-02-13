@@ -4,7 +4,7 @@ export const createUser = (userData) => User.collection.insertOne(userData);
 
 export const updateUser = (_id, updateData) => 
   User.findOneAndUpdate({ _id },
-    { '$set': { updateData } },
+    { '$set': updateData },
     { 'new': true, 'upsert': true, strict: false }
   );
 
