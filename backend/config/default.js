@@ -18,8 +18,9 @@ module.exports = {
     options: {
       user: '',
       pass: '',
-      server: { poolSize: 40 },
-      replset: { poolSize: 40 }
+      poolSize: 40,
+      // replset: { poolSize: 40 },
+      useNewUrlParser: true
     },
     debug: false
   },
