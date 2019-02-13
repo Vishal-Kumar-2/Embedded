@@ -1,6 +1,6 @@
 import config from 'config';
 import Queue from 'bull';
-import logger from './logger';
+import logger from '../lib/logger';
 import { getHotstreaks } from '../app/services/hotStreak';
 import { removeGarbageData } from '../app/services/cronService';
 

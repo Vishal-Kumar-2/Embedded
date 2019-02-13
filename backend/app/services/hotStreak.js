@@ -3,7 +3,7 @@ import { getCampaignData } from './campaign';
 import async from 'async';
 import mongoose from 'mongoose';
 import config from 'config';
-import logger from './logger';
+import logger from '../../lib/logger';
 import { updateReference, getReference } from '../../lib/firebase';
 
 const endPoints = {
