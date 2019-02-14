@@ -12,7 +12,7 @@ const initCampaignRoutes = () => {
   // protected routes
   campaignRoutes.post('/', isAuthTokenValid, CampaignController.createCampaign);
   campaignRoutes.delete('/:token', isAuthTokenValid, CampaignController.deleteCampaignByToken);
-  campaignRoutes.patch('/:token', isAuthTokenValid, CampaignController.updateCampaignByToken);
+  campaignRoutes.put('/:token', isAuthTokenValid, CampaignController.updateCampaignByToken);
 
   // business plan routes
   campaignRoutes.get(':token/conversions', verifyToken, isBusinessPlanActive,

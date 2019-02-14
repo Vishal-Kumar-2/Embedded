@@ -5,8 +5,8 @@ import { comparePassword } from '../../lib/bcrypt';
 const jwt = require('jwt-simple');
 
 export default class AuthController {
-  static updateLoginToken(req, res) {
-    let { username, password } = req.body;   
+  static loginUser(req, res) {
+    let { username, password } = req.body;
 
     findUser({ username : username }).then(async(user) => {
       const userObj = user[0];
@@ -31,7 +31,7 @@ export default class AuthController {
     })
   }
 
-  static updateLogoutToken(req, res) {
+  static logoutUser(req, res) {
     let { username, password } = req.body;
     const timeStamp = Date.now
     User.findAndUpdate({ username },

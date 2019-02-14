@@ -10,18 +10,17 @@ const CampaignSchema = new Schema({
       enabled: { type: Boolean, default: false },
       pastHours: { type: Number, default: 24 },
       type: { type: String, default: 'totalSigned', enum: ['totalVisited', 'totalSigned'] }, // possible values [signed, visits]
-      minToShow: { type: Number, default: 0 },
+      minToShow: { type: Number, default: 1 },
     },
     showLast: { type: Number, default: 20 },
     supportedCards: [String],
     appearFrom: { type: String, default: 'bottomLeft', enum: ['bottomLeft', 'bottomRight', 'topLeft', 'topRight'] },
-    initialCard: { type: String, default: 'pageVisit', enum: ['pageVisit', 'recentlyVisited', 'totalSigned', 'liveNowModal'] },
+    initialCard: { type: String, default: 'pageVisit', enum: ['pageVisit', 'recentlyVisited', 'totalSigned', 'liveVisiting'] },
     theme: { type: String, default: 'rounded', enum: ['boxy', 'rounded'] },
     direction: { type: String, default: 'bounceBottom', enum: ['bounceTop', 'bounceBottom'] },
     captureLinks: [String],
     targetLinks: [String],
     notification: {
-      firstDelay: { type: Number, default: 0 },
       duration: { type: Number, default: 7000 },
       timeGapBetweenEach: { type: Number, default: 3000 },
       transitionTime: { type: Number, default: 400 }
