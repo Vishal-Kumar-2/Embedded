@@ -36,15 +36,14 @@ export default class UserController {
   static updateUserById(req, res) {
     let { id } = req.params
     let updateData = req.body;
-    User.findByIdAndUpdate(id,
+
+    User.update(
+      { _id: id },
       { '$set': updateData },
       { 'new': true, 'upsert': true, strict: false }
     ).then((user) => {
-      if (user) {
-        Responder.success(res, user)
-      } else {
-        Responder.operationFailed(res, 'Error: ' + user)
-      }
+      if(user)
+        Responder.success(res, { message: "Updated user successfully" })
     }).catch((err) => {
       console.log(err);
       Responder.operationFailed(res, { message: err.message || err.reason })

@@ -31,4 +31,8 @@ userSchema.pre('save', async function() {
   user.password = hash;
 });
 
+userSchema.pre('update', async function() {
+  this.update({}, { password: await createHash(this.getUpdate().$set.password) } );
+});
+
 export default mongoose.model('User', userSchema);
