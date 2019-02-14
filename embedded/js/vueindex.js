@@ -341,12 +341,13 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
   })
 
   // collect form data and pass to firebase
-  submitActors = document.getElementsByTagName('form');
+  const button = document.querySelector('input[type=submit]');
   let submitDetails = {}
-  submitActors[0].addEventListener('submit', (event) => {
-    for (let i = 0; i < event.currentTarget.length; i++) {
-      if (event.currentTarget[i]['name']) {
-        submitDetails[event.currentTarget[i]['name']] = event.currentTarget[i]['value'];
+  button.addEventListener('click', () => {
+    const form = button.closest('form').elements;
+    for (let i = 0; i < form.length; i++) {
+      if (form[i].name) {
+        submitDetails[form[i].name] = form[i].value;
       }
     }
     // get ip
@@ -365,7 +366,7 @@ const attachEventListeners = () => new Promise((resolve, reject) => {
       .catch(error => console.log(error))
   })
   resolve();
-});
+})
 
 const updateLiveCount = (increment) => new Promise((resolve, reject) => {
   emitEvent({

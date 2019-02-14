@@ -13,8 +13,8 @@ const connectFirebase = (token) => new Promise((resolve, reject) => {
     storageBucket: "",
     messagingSenderId: ""
   };
-   firebase.initializeApp(config);
-   resolve(firebase.database());
+    const firebaseRef = firebase.initializeApp(config);
+    resolve(firebaseRef);
  } catch (err) {
    reject(err)
  }
